@@ -85,7 +85,11 @@ public:
 
   void del_padded_particles() {pos_arr_.resize(N_); idx_arr_.resize(N_);}
 
+  void align_base(int k, double *pt_max_dis2=nullptr);
+
   void align(int k);
+
+  void align_padded(int k);
 
   template<typename TRan>
   void stream(TRan& myran);
@@ -105,6 +109,8 @@ protected:
 
   // array of idx
   std::vector<int> idx_arr_;
+
+  double padded_dx2_ = 0;
 };
 
 template <class BaseV>
@@ -227,29 +233,85 @@ void VM_kNN<BaseV>::add_padded_particles() {
 }
 
 
-// TODO
 template <class BaseV>
-void VM_kNN<BaseV>::add_padded_particles(double padded_lx, double padded_ly) {
+void VM_kNN<BaseV>::add_padded_particles(double dx, double dy) {
+  for (int i = 0; i < N_; i++) {
+    double x, y;
+    get_x(i, x, y);
 
+    if (x <= dx) {
+      pos_arr_.emplace_back(x + Lx_, y);
+      idx_arr_.emplace_back(i);
+      if (y <= dy) {
+        pos_arr_.emplace_back(x + Lx_, y + Ly_);
+        idx_arr_.emplace_back(i);
+      } else if (y > Ly_ - dy) {
+        pos_arr_.emplace_back(x + Lx_, y - Ly_);
+        idx_arr_.emplace_back(i);
+      }
+    } else if (x <= Lx_ - dx) {
+      if (y <= dy) {
+        pos_arr_.emplace_back(x, y + Ly_);
+        idx_arr_.emplace_back(i);
+      } else if (y > Ly_ - dy) {
+        pos_arr_.emplace_back(x, y - Ly_);
+        idx_arr_.emplace_back(i);
+      }
+    } else {
+      pos_arr_.emplace_back(x - Lx_, y);
+      idx_arr_.emplace_back(i);
+      if (y <= dy) {
+        pos_arr_.emplace_back(x - Lx_, y + Ly_);
+        idx_arr_.emplace_back(i);
+      } else if (y > Ly_ - dy) {
+        pos_arr_.emplace_back(x - Lx_, y - Ly_);
+        idx_arr_.emplace_back(i);
+      }
+    }
+  }
+
+}
+
+template <class BaseV>
+void VM_kNN<BaseV>::align_base(int k, double *pt_max_dis2) {
+    Tree tree(boost::make_zip_iterator(boost::make_tuple( pos_arr_.begin(),idx_arr_.begin())),
+            boost::make_zip_iterator(boost::make_tuple( pos_arr_.end(),idx_arr_.end())));
+  
+    for (int i = 0; i < N_; i++) {
+      K_neighbor_search search(tree, pos_arr_[i], k);
+      for(K_neighbor_search::iterator it = search.begin(); it != search.end(); ++it) {
+        int j = boost::get<1>(it->first);
+        v_arr_[i].collide_one_side(v_arr_[j]);
+        if (pt_max_dis2 && *pt_max_dis2 < it->second) {
+          *pt_max_dis2 = it->second;
+        }
+      }
+    }
 }
 
 template <class BaseV>
 void VM_kNN<BaseV>::align(int k) {
   add_padded_particles();
-  Tree tree(boost::make_zip_iterator(boost::make_tuple( pos_arr_.begin(),idx_arr_.begin())),
-            boost::make_zip_iterator(boost::make_tuple( pos_arr_.end(),idx_arr_.end())));
-
-  for (int i = 0; i < N_; i++) {
-    K_neighbor_search search(tree, pos_arr_[i], k);
-    for(K_neighbor_search::iterator it = search.begin(); it != search.end(); ++it) {
-      int j = boost::get<1>(it->first);
-      v_arr_[i].collide_one_side(v_arr_[j]);
-    }
-  }
+  align_base(k);
   del_padded_particles();
 }
 
 
+template <class BaseV>
+void VM_kNN<BaseV>::align_padded(int k) {
+  if (padded_dx2_ == 0) {
+    add_padded_particles();
+    align_base(k, &padded_dx2_);
+    del_padded_particles();
+  } else {
+    double dx = sqrt(padded_dx2_) + 1;
+    double dy = dx;
+    add_padded_particles(dx, dy);
+    padded_dx2_ = 0;
+    align_base(k, &padded_dx2_);
+    del_padded_particles();
+  }
+}
 template <class BaseV>
 template <typename TRan>
 void VM_kNN<BaseV>::stream(TRan &myran) {

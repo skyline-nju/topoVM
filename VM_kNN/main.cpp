@@ -60,7 +60,8 @@ int main(int argc, char* argv[]) {
   }
 
   for (int i = 1; i <= n_step; i++) {
-    birds.align(k);
+    birds.align_padded(k);
+    // birds.align(k);
     birds.stream(myran);
     log.record(i);
     op.dump(i, birds);
