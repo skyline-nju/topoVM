@@ -14,6 +14,8 @@ VM/*.o
 *.dat
 numpy.i
 
+VM_kNN/test/build
+VM_kNN/build
 VM_metric_free/build/
 VM_metric_free/test/build/
 VMpy/data/*.mp4
