@@ -299,8 +299,9 @@ void VM_kNN<BaseV>::align(int k) {
 
 template <class BaseV>
 void VM_kNN<BaseV>::align_padded(int k) {
-  if (padded_dx2_ == 0) {
+  if (padded_dx2_ == 0 || padded_dx2_ >= Lx_ * Lx_ || padded_dx2_ >= Ly_ * Ly_) {
     add_padded_particles();
+    padded_dx2_ = 0;
     align_base(k, &padded_dx2_);
     del_padded_particles();
   } else {
@@ -312,6 +313,7 @@ void VM_kNN<BaseV>::align_padded(int k) {
     del_padded_particles();
   }
 }
+
 template <class BaseV>
 template <typename TRan>
 void VM_kNN<BaseV>::stream(TRan &myran) {
@@ -346,28 +348,32 @@ void VM_kNN<BaseV>::get_order_para(T &phi, T &theta) const {
 }
 
 /***************************************************************************************
- *      Class for binary mixture of aligners and dissenters with voronoi-type 
- *      interaction
+ *      Class for binary mixture of aligners and dissenters with kNN interaction
  * 
  ***************************************************************************************/
-/*
+
 template <class BaseV>
-class VM_Voro_AlignerDissenter: public VM_Voro<BaseV> {
+class VM_kNN_AlignerDissenter: public VM_kNN<BaseV> {
 public:
-  VM_Voro_AlignerDissenter(double Lx, double Ly, int N, double eta, double v0, int n_dis)
-    : VM_Voro<BaseV>(Lx, Ly, N, eta, v0), n_dis_(n_dis) {}
+  VM_kNN_AlignerDissenter(double Lx, double Ly, int N, double eta, double v0, int n_dis)
+    : VM_kNN<BaseV>(Lx, Ly, N, eta, v0), n_dis_(n_dis) {}
 
 
   template <typename TRan>
-  void ini_rand(TRan &myran) {VM_Voro<BaseV>::ini_rand(myran);}
+  void ini_rand(TRan &myran) {VM_kNN<BaseV>::ini_rand(myran);}
+
   template <typename TRan>
   void ini_rand(TRan &myran, double theta0);
+
   template <typename TSnap>
   void ini_from_snap(TSnap& snap_reader);
   
-  void align();
+  void align_base(int k, double *pt_max_dis2=nullptr);
 
-  void align_nearest_neighbor();
+  void align(int k);
+
+  void align_padded(int k);
+
 
   template <typename T>
   void get_order_para(T &phi, T &theta) const;
@@ -380,55 +386,63 @@ protected:
 };
 
 template <class BaseV>
-void VM_Voro_AlignerDissenter<BaseV>::align() {
-  for (auto fit = VM_Voro<BaseV>::DT_->periodic_triangles_begin(PDT::UNIQUE);
-    fit != VM_Voro<BaseV>::DT_->periodic_triangles_end(PDT::UNIQUE); ++fit) {
-    unsigned int idx0 = fit.get_face()->vertex(0)->info();
-    unsigned int idx1 = fit.get_face()->vertex(1)->info();
-    unsigned int idx2 = fit.get_face()->vertex(2)->info();
-    bool is_aligner_0 = idx0 >= n_dis_;
-    bool is_aligner_1 = idx1 >= n_dis_;
-    bool is_aligner_2 = idx2 >= n_dis_;
-    if (idx0 < idx1) {
-      VM_Voro<BaseV>::v_arr_[idx0].collide(&VM_Voro<BaseV>::v_arr_[idx1], is_aligner_0, is_aligner_1);
+void VM_kNN_AlignerDissenter<BaseV>::align_base(int k, double *pt_max_dis2) {
+    Tree tree(boost::make_zip_iterator(boost::make_tuple( VM_kNN<BaseV>::pos_arr_.begin(),VM_kNN<BaseV>::idx_arr_.begin())),
+            boost::make_zip_iterator(boost::make_tuple( VM_kNN<BaseV>::pos_arr_.end(),VM_kNN<BaseV>::idx_arr_.end())));
+    
+    for (int i = 0; i < VM_kNN<BaseV>::N_; i++) {
+      K_neighbor_search search(tree, VM_kNN<BaseV>::pos_arr_[i], k);
+      for(K_neighbor_search::iterator it = search.begin(); it != search.end(); ++it) {
+        int j = boost::get<1>(it->first);
+        if (i >= n_dis_) {
+          VM_kNN<BaseV>::v_arr_[i].collide_one_side(VM_kNN<BaseV>::v_arr_[j]);
+        }
+        if (pt_max_dis2 && *pt_max_dis2 < it->second) {
+          *pt_max_dis2 = it->second;
+        }
+      }
     }
-    if (idx1 < idx2) {
-      VM_Voro<BaseV>::v_arr_[idx1].collide(&VM_Voro<BaseV>::v_arr_[idx2], is_aligner_1, is_aligner_2);
-    }
-    if (idx2 < idx0) {
-      VM_Voro<BaseV>::v_arr_[idx2].collide(&VM_Voro<BaseV>::v_arr_[idx0], is_aligner_2, is_aligner_0);
-    }
-  }
 }
 
-// TODO
 template <class BaseV>
-void VM_Voro_AlignerDissenter<BaseV>::align_nearest_neighbor() {
-  for (auto pit = VM_Voro<BaseV>::DT_->periodic_points_begin(PDT::UNIQUE);
-    pit != VM_Voro<BaseV>::DT_->periodic_points_end(PDT::UNIQUE); ++pit) {
-    unsigned int idx0 = pit.get_vertex()->info();
-    bool is_aligner_0 = idx0 >= n_dis_;
-    if (is_aligner_0) {
-      // auto vh_nearest = CGAL::nearest_neighbor(*VM_Voro<BaseV>::DT_, pit.get_vertex());
-      // unsigned int idx1 = vh_nearest->info();
-      // VM_Voro<BaseV>::v_arr_[idx0].collide(&VM_Voro<BaseV>::v_arr_[idx1], true, false);
-    }
+void VM_kNN_AlignerDissenter<BaseV>::align(int k) {
+  VM_kNN<BaseV>::add_padded_particles();
+  align_base(k);
+  VM_kNN<BaseV>::del_padded_particles();
+}
+
+template <class BaseV>
+void VM_kNN_AlignerDissenter<BaseV>::align_padded(int k) {
+  if (VM_kNN<BaseV>::padded_dx2_ == 0 || VM_kNN<BaseV>::padded_dx2_ >= VM_kNN<BaseV>::Lx_ * VM_kNN<BaseV>::Lx_ || VM_kNN<BaseV>::padded_dx2_ >= VM_kNN<BaseV>::Ly_ * VM_kNN<BaseV>::Ly_) {
+    VM_kNN<BaseV>::add_padded_particles();
+    double dx2 = 0;
+    align_base(k, &dx2);
+    VM_kNN<BaseV>::padded_dx2_ = dx2;
+    VM_kNN<BaseV>::del_padded_particles();
+  } else {
+    double dx = sqrt(VM_kNN<BaseV>::padded_dx2_) + 1;
+    double dy = dx;
+    VM_kNN<BaseV>::add_padded_particles(dx, dy);
+    double dx2 = 0;
+    align_base(k, &dx2);
+    VM_kNN<BaseV>::padded_dx2_ = dx2;
+    VM_kNN<BaseV>::del_padded_particles();
   }
 }
 
 template <class BaseV>
 template <typename TRan>
-void VM_Voro_AlignerDissenter<BaseV>::ini_rand(TRan &myran, double theta0) {
-  double *x = new double[VM_Voro<BaseV>::N_];
-  double *y = new double[VM_Voro<BaseV>::N_];
-  double *vx = new double[VM_Voro<BaseV>::N_];
-  double *vy = new double[VM_Voro<BaseV>::N_];
+void VM_kNN_AlignerDissenter<BaseV>::ini_rand(TRan &myran, double theta0) {
+  double *x = new double[VM_kNN<BaseV>::N_];
+  double *y = new double[VM_kNN<BaseV>::N_];
+  double *vx = new double[VM_kNN<BaseV>::N_];
+  double *vy = new double[VM_kNN<BaseV>::N_];
 
   double vx0 = cos(theta0);
   double vy0 = sin(theta0);
-  for (int i = 0; i < VM_Voro<BaseV>::N_; i++) {
-    x[i] = myran.doub() * VM_Voro<BaseV>::Lx_;
-    y[i] = myran.doub() * VM_Voro<BaseV>::Ly_;
+  for (int i = 0; i < VM_kNN<BaseV>::N_; i++) {
+    x[i] = myran.doub() * VM_kNN<BaseV>::Lx_;
+    y[i] = myran.doub() * VM_kNN<BaseV>::Ly_;
     if (i > n_dis_) {
       vx[i] = vx0;
       vy[i] = vy0;
@@ -438,7 +452,7 @@ void VM_Voro_AlignerDissenter<BaseV>::ini_rand(TRan &myran, double theta0) {
       vy[i] = sin(theta);
     }
   }
-  VM_Voro<BaseV>::input_data(x, y, vx, vy);
+  VM_kNN<BaseV>::input_data(x, y, vx, vy);
   delete []x;
   delete []y;
   delete []vx;
@@ -447,15 +461,15 @@ void VM_Voro_AlignerDissenter<BaseV>::ini_rand(TRan &myran, double theta0) {
 
 template <class BaseV>
 template <typename TSnap>
-void VM_Voro_AlignerDissenter<BaseV>::ini_from_snap(TSnap &snap_reader) {
-  double *x = new double[VM_Voro<BaseV>::N_];
-  double *y = new double[VM_Voro<BaseV>::N_];
-  double *vx = new double[VM_Voro<BaseV>::N_];
-  double *vy = new double[VM_Voro<BaseV>::N_];
-  uint32_t *type_id = new uint32_t[VM_Voro<BaseV>::N_];
+void VM_kNN_AlignerDissenter<BaseV>::ini_from_snap(TSnap &snap_reader) {
+  double *x = new double[VM_kNN<BaseV>::N_];
+  double *y = new double[VM_kNN<BaseV>::N_];
+  double *vx = new double[VM_kNN<BaseV>::N_];
+  double *vy = new double[VM_kNN<BaseV>::N_];
+  uint32_t *type_id = new uint32_t[VM_kNN<BaseV>::N_];
   snap_reader.read_last_frame(x, y, vx, vy, type_id);
-  std::cout << "Load " << VM_Voro<BaseV>::N_ << " particles, consisting of " << n_dis_ << " dissenters" << std::endl;
-  for(int i = 0; i < VM_Voro<BaseV>::N_; i++) {
+  std::cout << "Load " << VM_kNN<BaseV>::N_ << " particles, consisting of " << n_dis_ << " dissenters" << std::endl;
+  for(int i = 0; i < VM_kNN<BaseV>::N_; i++) {
     if (i < n_dis_) {
       if (type_id[i] != 1) {
         std::cout << "Error, typeid of particle " << i << " is " << type_id[i] << std::endl;
@@ -468,7 +482,7 @@ void VM_Voro_AlignerDissenter<BaseV>::ini_from_snap(TSnap &snap_reader) {
       }
     }
   }
-  VM_Voro<BaseV>::input_data(x, y, vx, vy);
+  VM_kNN<BaseV>::input_data(x, y, vx, vy);
   delete []x;
   delete []y;
   delete []vx;
@@ -478,15 +492,14 @@ void VM_Voro_AlignerDissenter<BaseV>::ini_from_snap(TSnap &snap_reader) {
 
 template <class BaseV>
 template <typename T>
-void VM_Voro_AlignerDissenter<BaseV>::get_order_para(T &phi, T &theta) const {
+void VM_kNN_AlignerDissenter<BaseV>::get_order_para(T &phi, T &theta) const {
     double vx = 0;
     double vy = 0;
-    for (int i = n_dis_; i < VM_Voro<BaseV>::N_; i++)
-    {
-        vx += VM_Voro<BaseV>::v_arr_[i].vx;
-        vy += VM_Voro<BaseV>::v_arr_[i].vy;
+    for (int i = n_dis_; i < VM_kNN<BaseV>::N_; i++){
+      vx += VM_kNN<BaseV>::v_arr_[i].vx;
+      vy += VM_kNN<BaseV>::v_arr_[i].vy;
     }
-    int n_aligner = VM_Voro<BaseV>::N_ - n_dis_;
+    int n_aligner = VM_kNN<BaseV>::N_ - n_dis_;
     vx /= n_aligner;
     vy /= n_aligner;
     phi = sqrt(vx * vx + vy * vy);
@@ -495,17 +508,16 @@ void VM_Voro_AlignerDissenter<BaseV>::get_order_para(T &phi, T &theta) const {
 
 template <class BaseV>
 template <typename TSnap>
-void VM_Voro_AlignerDissenter<BaseV>::dump(int i_step, TSnap &snap_writer) {
+void VM_kNN_AlignerDissenter<BaseV>::dump(int i_step, TSnap &snap_writer) {
   if (snap_writer.need_export(i_step)) {
-    float* pos = new float[VM_Voro<BaseV>::N_*3];
-    uint32_t *type_id = new uint32_t[VM_Voro<BaseV>::N_]{};
+    float* pos = new float[VM_kNN<BaseV>::N_*3];
+    uint32_t *type_id = new uint32_t[VM_kNN<BaseV>::N_]{};
     for (int i = 0; i < n_dis_; i++) {
       type_id[i] = 1;
     }
-    VM_Voro<BaseV>::get_pos_arr(pos);
-    snap_writer.dump(i_step, VM_Voro<BaseV>::N_, pos, type_id);
+    VM_kNN<BaseV>::get_pos_arr(pos);
+    snap_writer.dump(i_step, VM_kNN<BaseV>::N_, pos, type_id);
     delete [] pos;
     delete [] type_id;
   }
 }
-*/

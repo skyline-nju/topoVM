@@ -6,13 +6,13 @@ int main(int argc, char* argv[]) {
   double Lx = atof(argv[1]);
   double Ly = atof(argv[2]);
   double eta = atof(argv[3]);
-  double frac_dis = 0;
-  int k = atoi(argv[4]);
-  int n_step = atoi(argv[5]);
-  int snap_dt = atoi(argv[6]);
-  int seed = atoi(argv[7]);
-  std::string ini_mode = argv[8];
-  double rho0 = 1;
+  double frac_dis = atof(argv[4]);
+  double rho0 = atof(argv[5]);
+  int k = atoi(argv[6]);
+  int n_step = atoi(argv[7]);
+  int snap_dt = atoi(argv[8]);
+  int seed = atoi(argv[9]);
+  std::string ini_mode = argv[10];
   double v0 = 0.5;
   int N = int(Lx * Ly * rho0);
   int log_dt = 1000;
@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
   Ranq2 myran(seed);
 
   // VM_Voro_AlignerDissenter<V_scalar> birds(Lx, Ly, N, eta, v0, n_dis);
-  VM_kNN<V_scalar> birds(Lx, Ly, N, eta, v0);
+  VM_kNN_AlignerDissenter<V_scalar> birds(Lx, Ly, N, eta, v0, n_dis);
 
   // Set output
   char basename[255];
