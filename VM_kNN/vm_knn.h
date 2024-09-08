@@ -274,12 +274,13 @@ void VM_kNN<BaseV>::add_padded_particles(double dx, double dy) {
 
 template <class BaseV>
 void VM_kNN<BaseV>::align_base(int k, double *pt_max_dis2) {
-    Tree tree(boost::make_zip_iterator(boost::make_tuple( pos_arr_.begin(),idx_arr_.begin())),
-            boost::make_zip_iterator(boost::make_tuple( pos_arr_.end(),idx_arr_.end())));
-  
-    for (int i = 0; i < N_; i++) {
-      K_neighbor_search search(tree, pos_arr_[i], k);
-      for(K_neighbor_search::iterator it = search.begin(); it != search.end(); ++it) {
+  Tree tree(boost::make_zip_iterator(boost::make_tuple( pos_arr_.begin(),idx_arr_.begin())),
+          boost::make_zip_iterator(boost::make_tuple( pos_arr_.end(),idx_arr_.end())));
+
+  for (int i = 0; i < N_; i++) {
+    K_neighbor_search search(tree, pos_arr_[i], k+1);
+    for(K_neighbor_search::iterator it = search.begin(); it != search.end(); ++it) {
+      if (it != search.begin()) {  // The first neighbor is particle i itself and should be excluded 
         int j = boost::get<1>(it->first);
         v_arr_[i].collide_one_side(v_arr_[j]);
         if (pt_max_dis2 && *pt_max_dis2 < it->second) {
@@ -287,6 +288,7 @@ void VM_kNN<BaseV>::align_base(int k, double *pt_max_dis2) {
         }
       }
     }
+  }
 }
 
 template <class BaseV>
@@ -387,13 +389,18 @@ protected:
 
 template <class BaseV>
 void VM_kNN_AlignerDissenter<BaseV>::align_base(int k, double *pt_max_dis2) {
-    Tree tree(boost::make_zip_iterator(boost::make_tuple( VM_kNN<BaseV>::pos_arr_.begin(),VM_kNN<BaseV>::idx_arr_.begin())),
-            boost::make_zip_iterator(boost::make_tuple( VM_kNN<BaseV>::pos_arr_.end(),VM_kNN<BaseV>::idx_arr_.end())));
-    
-    for (int i = 0; i < VM_kNN<BaseV>::N_; i++) {
-      K_neighbor_search search(tree, VM_kNN<BaseV>::pos_arr_[i], k);
-      for(K_neighbor_search::iterator it = search.begin(); it != search.end(); ++it) {
+  Tree tree(boost::make_zip_iterator(boost::make_tuple( VM_kNN<BaseV>::pos_arr_.begin(),VM_kNN<BaseV>::idx_arr_.begin())),
+          boost::make_zip_iterator(boost::make_tuple( VM_kNN<BaseV>::pos_arr_.end(),VM_kNN<BaseV>::idx_arr_.end())));
+  
+  for (int i = 0; i < VM_kNN<BaseV>::N_; i++) {
+    K_neighbor_search search(tree, VM_kNN<BaseV>::pos_arr_[i], k+1);
+    for(K_neighbor_search::iterator it = search.begin(); it != search.end(); ++it) {
+      if (it != search.begin()) {     // The first neighbor is particle i itself and should be excluded 
         int j = boost::get<1>(it->first);
+        // if (j == i) {
+        //   std::cout << "j = i = " << j << std::endl;
+        //   exit(1);
+        // }
         if (i >= n_dis_) {
           VM_kNN<BaseV>::v_arr_[i].collide_one_side(VM_kNN<BaseV>::v_arr_[j]);
         }
@@ -402,6 +409,7 @@ void VM_kNN_AlignerDissenter<BaseV>::align_base(int k, double *pt_max_dis2) {
         }
       }
     }
+  }
 }
 
 template <class BaseV>
