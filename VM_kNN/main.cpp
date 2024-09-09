@@ -1,4 +1,5 @@
 #include "vm_knn.h"
+#include "vm_knn_symm.h"
 #include "io2D.h"
 
 int main(int argc, char* argv[]) {
@@ -20,7 +21,10 @@ int main(int argc, char* argv[]) {
   Ranq2 myran(seed);
 
   // VM_Voro_AlignerDissenter<V_scalar> birds(Lx, Ly, N, eta, v0, n_dis);
-  VM_kNN_AlignerDissenter<V_scalar> birds(Lx, Ly, N, eta, v0, n_dis);
+  // VM_kNN_AlignerDissenter<V_scalar> birds(Lx, Ly, N, eta, v0, n_dis);
+  VM_kNN_symm<V_scalar> birds(Lx, Ly, N, eta, v0);
+  // VM_kNN<V_scalar> birds(Lx, Ly, N, eta, v0);
+
 
   // Set output
   char basename[255];

@@ -28,6 +28,7 @@ typedef CGAL::Orthogonal_k_neighbor_search<Traits> K_neighbor_search;
 typedef K_neighbor_search::Tree Tree;
 typedef K_neighbor_search::Distance Distance;
 
+
 // Base class for Vicsek model
 class VM {
 public:
@@ -353,7 +354,6 @@ void VM_kNN<BaseV>::get_order_para(T &phi, T &theta) const {
  *      Class for binary mixture of aligners and dissenters with kNN interaction
  * 
  ***************************************************************************************/
-
 template <class BaseV>
 class VM_kNN_AlignerDissenter: public VM_kNN<BaseV> {
 public:
