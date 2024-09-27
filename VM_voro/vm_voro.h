@@ -406,10 +406,11 @@ template <typename T>
 void VM_Voro_AlignerDissenter<BaseV>::get_order_para(T &phi, T &theta) const {
     double vx = 0;
     double vy = 0;
-    for (int i = n_dis_; i < VM_Voro<BaseV>::N_; i++)
-    {
-        vx += VM_Voro<BaseV>::v_arr_[i].vx;
-        vy += VM_Voro<BaseV>::v_arr_[i].vy;
+    for (int i = n_dis_; i < VM_Voro<BaseV>::N_; i++){
+      double ux, uy;
+      VM_Voro<BaseV>::v_arr_[i].get_v(ux, uy);
+      vx += ux;
+      vy += uy;
     }
     int n_aligner = VM_Voro<BaseV>::N_ - n_dis_;
     vx /= n_aligner;

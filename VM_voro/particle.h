@@ -27,8 +27,7 @@ struct V_scalar {
   template <typename TRan>
   void update_v(double eta, TRan &myran);
 
-  template <typename T>
-  void update_x(T &_x, T &_y, double v0, double Lx, double Ly);
+  void update_x(double &_x, double &_y, double v0, double Lx, double Ly);
 
   void get_v(double &VX, double &VY) const { VX = vx; VY = vy; }
   void get_theta(double &Theta) const { Theta = std::atan2(vy, vx); }
@@ -82,18 +81,66 @@ void V_scalar::update_v(double eta, TRan &myran) {
   vy = vy_next = c1 * s2 + c2 * s1;
 }
 
-template <typename T>
-void V_scalar::update_x(T & _x, T & _y, double v0, double Lx, double Ly) {
-  _x += v0 * vx;
-  _y += v0 * vy;
-  if (_x < 0) {
-    _x += Lx;
-  } else if (_x >= Lx) {
-    _x -= Lx;
+
+
+// orientation of particles that move in continuos time steps.
+struct V_conti {
+  V_conti() {}
+  V_conti(double vx, double vy):
+    theta(std::atan2(vy, vx)), theta_dot(0) {}
+
+  template <class T>
+  void collide(T *other);
+
+  template <class T>
+  void collide(T *other, bool is_aligner_1, bool is_aligner_2);
+
+  template <typename TRan>
+  void update_v(double eta, TRan &myran);
+
+  void update_x(double &_x, double &_y, double v0, double Lx, double Ly);
+
+  void get_v(double &VX, double &VY) const {
+    VX = std::cos(theta); VY = std::sin(theta);
   }
-  if (_y < 0) {
-    _y += Ly;
-  } else if (_y >= Ly) {
-    _y -= Ly;
+
+  void get_theta(double &Theta) const { Theta = theta; }
+  void set_v(double theta0) { theta = theta0; }
+
+  static void set_para(double h, double Dr, double J0);
+
+  double theta;
+  double theta_dot;
+  static double h;               // time interval to integrate times J0
+  static double sqrt_24_Dr_h;    // sqrt(2 * Dr * 12 * h)
+  static double J0_h;
+};
+
+template<typename TRan>
+void V_conti::update_v(double eta, TRan & myran) {
+  theta += theta_dot * J0_h + (myran.doub() - 0.5) * sqrt_24_Dr_h;
+  if (theta > PI) {
+    theta -= 2 * PI;
+  } else if (theta <-PI) {
+    theta += 2 * PI;
+  }
+  theta_dot = 0;
+}
+
+template <class T>
+void V_conti::collide(T *other) {
+  double omega = std::sin(other->theta - theta);
+  theta_dot += omega;
+  other->theta_dot -= omega;
+}
+
+template <class T>
+void V_conti::collide(T *other, bool is_aligner_1, bool is_aligner_2) {
+  double omega = std::sin(other->theta - theta);
+  if (is_aligner_1){
+    theta_dot += omega;
+  }
+  if (is_aligner_2) {
+    other->theta_dot -= omega;
   }
 }

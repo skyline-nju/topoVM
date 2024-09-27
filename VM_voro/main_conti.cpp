@@ -1,24 +1,33 @@
+#include "config.h"
+#ifdef CONTI_T
 #include "vm_voro.h"
 #include "io2D.h"
 
 int main(int argc, char* argv[]) {
   // Set parameters
   double Lx = atof(argv[1]);
-  double eta = atof(argv[2]);
+  double Dr = atof(argv[2]);
   double frac_dis = atof(argv[3]);
+
   int n_step = atoi(argv[4]);
   int snap_dt = atoi(argv[5]);
   int seed = atoi(argv[6]);
   std::string ini_mode = argv[7];
+
+  double h0 = atof(argv[8]);
+  double J0 = atof(argv[9]);
+
+  V_conti::set_para(h0, Dr, J0);
+
   double Ly = Lx;
   double rho0 = 1;
-  double v0 = 0.5;
+  double v0 = 1;
   int N = int(Lx * Ly * rho0);
   int log_dt = 1000;
   int n_dis = int(round(N * frac_dis));
   Ranq2 myran(seed);
 
-  VM_Voro_AlignerDissenter<V_scalar> birds(Lx, Ly, N, eta, v0, n_dis);
+  VM_Voro_AlignerDissenter<V_conti> birds(Lx, Ly, N, Dr, v0, n_dis);
 
   // Set output
   char basename[255];
@@ -35,7 +44,7 @@ int main(int argc, char* argv[]) {
   mkdir(log_folder);
   mkdir(order_para_folder);
 
-  snprintf(basename, 255, "L%g_%g_d%.4f_e%.3f_r%g_s%d", Lx, Ly, frac_dis, eta, rho0, seed);
+  snprintf(basename, 255, "L%g_%g_d%.4f_D%.3f_r%g_J%.4f_h%.4f_s%d", Lx, Ly, frac_dis, Dr, rho0, J0, h0, seed);
   snprintf(snap_file, 255, "%s/%s.gsd", prefix, basename);
 
   int start = 0;
@@ -55,6 +64,9 @@ int main(int argc, char* argv[]) {
     birds.ini_rand(myran);
   } else if (ini_mode == "ordered") {
     birds.ini_rand(myran, 0);
+  } else {
+    std::cout << "Error, ini_mode must be one of resume, rand and ordered!" << std::endl;
+    exit(1);
   }
 
   for (int i = 1; i <= n_step; i++) {
@@ -65,3 +77,5 @@ int main(int argc, char* argv[]) {
     birds.dump(i, gsd);
   }
 }
+
+#endif
