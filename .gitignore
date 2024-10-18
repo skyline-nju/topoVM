@@ -11,7 +11,6 @@ VM/*.o
 .vscode
 *.cxx
 *.pyd
-*.dat
 numpy.i
 *.pdf
 
@@ -24,7 +23,7 @@ VMpy/data/*.pdf
 XYmodel/data
 NematicLAG/data
 ACMq4/data
-snap/
+
 phi/
 log/
 rhox/
