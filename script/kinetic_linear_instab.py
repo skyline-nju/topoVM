@@ -18,6 +18,25 @@ def get_J_kl(k: int, l: int)-> float:
 def get_P_k(k: int, eta: float)-> float:
     return np.exp(-0.5 * (k * eta)**2)
 
+
+def get_eta_c(rhoA, rhoB, alpha=1.):
+    rho0 = rhoA + rhoB
+    phiB = rhoB / rho0
+    if not isinstance(phiB, np.ndarray):
+        phiB = np.array([phiB])
+        is_scalar = True
+    else:
+        is_scalar = False
+    mask = 2  * phiB - (4 - np.pi) < 0
+    eta = np.zeros_like(phiB)
+    eta[mask] = np.sqrt(
+        2 * np.log ((np.pi + 4 * alpha - 2 * alpha * phiB[mask])/(np.pi * (1+alpha)))
+    )
+    if is_scalar:
+        eta = eta[0]
+    return eta
+
+
 def func_HS(x, rhoA, rhoB, eta, alpha):
     K = x.size - 1
     y = np.zeros(K+1)
@@ -163,7 +182,7 @@ def plot_sigma_vs_rhoB():
     plt.close()
 
 
-def cal_sigma_qx(K=50, n=50):
+def cal_sigma_qx_fixed_rho0(K=50, n=50):
     rhoB_arr = np.linspace(0, 0.5, n)
     eta_arr = np.linspace(0, 0.5, n)
 
@@ -187,14 +206,42 @@ def cal_sigma_qx(K=50, n=50):
     np.savez_compressed(f_out, rhoB=rhoB_arr, eta=eta_arr, sigma=sigma_arr)
 
 
+def cal_sigma_qx_fixed_rhoB(K=50, n=50, skip_neg_mu=False):
+    rhoA_arr = np.linspace(0, 1.2, n)
+    eta_arr = np.linspace(0, 0.5, n)
 
-if __name__ == "__main__":
-    # cal_sigma_qx(K=20, n=200)
-    # cal_sigma_qx(K=50, n=200)
-    # cal_sigma_qx(K=100, n=200)
+    qx = 1e-3
+    qy = 0
+
+    rhoB = 0.03
+
+    alpha = 1
+    
+    sigma_arr = np.zeros((eta_arr.size, rhoA_arr.size))
+
+    for j, eta in enumerate(eta_arr):
+        print("j=", j)
+        for i, rhoA in enumerate(rhoA_arr):
+            rho0 = rhoA + rhoB
+            eta_c = get_eta_c(rhoA, rhoB, alpha=alpha)
+            if eta > eta_c and skip_neg_mu:
+                sigma_arr[j, i] = 0
+            else:
+                M, f_bar = get_M(eta, rhoA, rhoB, alpha, K, qx, qy)
+                sigma_re = linalg.eigvals(M).real
+                sigma_arr[j, i] = np.max(sigma_re)
+    
+    f_out = f"data/rB{rhoB:g}_qx{qx:.4f}_K{K:d}_n{n:d}.npz"
+    np.savez_compressed(f_out, rhoA=rhoA_arr, eta=eta_arr, sigma=sigma_arr)
 
 
-    fig, axes = plt.subplots(1, 3, figsize=(12, 4), constrained_layout=True)
+def PD_rhoB_eta():
+    # cal_sigma_qx_fixed_rho0(K=20, n=200)
+    # cal_sigma_qx_fixed_rho0(K=50, n=200)
+    # cal_sigma_qx_fixed_rho0(K=100, n=200)
+
+
+    fig, axes = plt.subplots(1, 3, figsize=(12, 4), constrained_layout=True, sharex=True, sharey=True)
     K_arr = [20, 50, 100]
     n = [200, 200, 200]
     for i, K in enumerate(K_arr):
@@ -210,6 +257,77 @@ if __name__ == "__main__":
             mask = sigma > 1e-9
             state[mask] = 1
     
-        axes[i].imshow(state, origin="lower",extent=[0, 0.5, 0, 0.5])
+        dx = rhoB[1] - rhoB[0]
+        dy = eta[1] - eta[0]
+        extent = [rhoB[0]-dx/2, rhoB[-1]+dx/2, eta[0]-dy/2, eta[-1]+dy/2]
+        axes[i].imshow(state, origin="lower",extent=extent)
+
+
+        eta_c = get_eta_c(1-rhoB, rhoB, alpha=1)
+        axes[i].plot(rhoB, eta_c, c="r")
+        axes[i].set_xlim(rhoB[0], rhoB[-1])
+        axes[i].set_ylim(eta[0], eta[-1])
+
     plt.show()
     plt.close()
+
+
+def plot_rhoB_eta_panel(ax, K, n, rho0=1):
+    if n == 50:
+        fin = f"data/r1_qx0.0010_K{K:d}.npz"
+    else:
+        fin = f"data/r1_qx0.0010_K{K:d}_n{n:d}.npz"
+    with np.load(fin, "r") as data:
+        rhoB = data["rhoB"]
+        eta = data["eta"]
+        sigma = data["sigma"]
+        state = np.zeros_like(sigma)
+        mask = sigma > 1e-9
+        state[mask] = 1
+
+    dx = rhoB[1] - rhoB[0]
+    dy = eta[1] - eta[0]
+    extent = [rhoB[0]-dx/2, rhoB[-1]+dx/2, eta[0]-dy/2, eta[-1]+dy/2]
+    ax.imshow(state, origin="lower",extent=extent, aspect="auto")
+    eta_c = get_eta_c(1-rhoB, rhoB, alpha=1)
+    ax.plot(rhoB, eta_c, c="r")
+    ax.set_xlim(rhoB[0], rhoB[-1])
+    ax.set_ylim(eta[0], eta[-1])
+
+def plot_rhoA_eta_panel(ax, K, n, rhoB=0.03):
+    fin = f"data/rB{rhoB:g}_qx0.0010_K{K:d}_n{n:d}.npz"
+    with np.load(fin, "r") as data:
+        eta = data["eta"]
+        rhoA = data["rhoA"]
+        sigma = data["sigma"]
+        state = np.zeros_like(sigma)
+        mask = sigma > 1e-9
+        state[mask] = 1
+        dx = rhoA[1] - rhoA[0]
+        dy = eta[1] - eta[0]
+        extent = [rhoA[0]-dx/2, rhoA[-1]+dx/2, eta[0]-dy/2, eta[-1]+dy/2]
+        ax.imshow(state, origin="lower", extent=extent, aspect="auto")
+        eta_c = get_eta_c(rhoA, rhoB, alpha=1)
+        ax.plot(rhoA, eta_c, c="tab:red")
+
+def PD_rhoA_eta():
+    # cal_sigma_qx_fixed_rhoB(K=20, n=200, skip_neg_mu=True)
+    # cal_sigma_qx_fixed_rhoB(K=50, n=200, skip_neg_mu=True)
+    # cal_sigma_qx_fixed_rhoB(K=100, n=200, skip_neg_mu=True)
+
+    fig, axes = plt.subplots(1, 3, constrained_layout=True, figsize=(12, 4), sharex=True, sharey=True)
+
+    rhoB = 0.03
+    K_arr = [20, 50, 100]
+    n_arr = [200, 200, 200]
+    for i, ax in enumerate(axes):
+        plot_rhoA_eta_panel(ax, K_arr[i], n_arr[i])
+
+
+    plt.show()
+    plt.close()
+
+
+if __name__ == "__main__":
+    PD_rhoA_eta()
+    # PD_rhoB_eta()
