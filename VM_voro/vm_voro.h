@@ -76,6 +76,9 @@ public:
 
   void align();
 
+  template <typename TRan>
+  void align(double alpha, TRan& myran);
+
   void align_nearest_neighbor();
 
   template<typename TRan>
@@ -221,6 +224,26 @@ void VM_Voro<BaseV>::align() {
   }
 }
 
+template <class BaseV>
+template <typename TRan>
+void VM_Voro<BaseV>::align(double alpha, TRan &myran) {
+  for (auto fit = DT_->periodic_triangles_begin(PDT::UNIQUE);
+    fit != DT_->periodic_triangles_end(PDT::UNIQUE); ++fit) {
+    unsigned int idx0 = fit.get_face()->vertex(0)->info();
+    unsigned int idx1 = fit.get_face()->vertex(1)->info();
+    unsigned int idx2 = fit.get_face()->vertex(2)->info();
+    if (idx0 < idx1 && myran.doub() < alpha) {
+      v_arr_[idx0].collide(&v_arr_[idx1]);
+    }
+    if (idx1 < idx2 && myran.doub() < alpha) {
+      v_arr_[idx1].collide(&v_arr_[idx2]);
+    }
+    if (idx2 < idx0 && myran.doub() < alpha) {
+      v_arr_[idx2].collide(&v_arr_[idx0]);
+    }
+  }
+}
+
 // TODO
 template <class BaseV>
 void VM_Voro<BaseV>::align_nearest_neighbor() {
@@ -292,6 +315,9 @@ public:
   
   void align();
 
+  template <typename TRan>
+  void align(double alpha, TRan& myran);
+
   void align_nearest_neighbor();
 
   template <typename T>
@@ -321,6 +347,29 @@ void VM_Voro_AlignerDissenter<BaseV>::align() {
       VM_Voro<BaseV>::v_arr_[idx1].collide(&VM_Voro<BaseV>::v_arr_[idx2], is_aligner_1, is_aligner_2);
     }
     if (idx2 < idx0) {
+      VM_Voro<BaseV>::v_arr_[idx2].collide(&VM_Voro<BaseV>::v_arr_[idx0], is_aligner_2, is_aligner_0);
+    }
+  }
+}
+
+template <class BaseV>
+template <typename TRan>
+void VM_Voro_AlignerDissenter<BaseV>::align(double alpha, TRan &myran) {
+  for (auto fit = VM_Voro<BaseV>::DT_->periodic_triangles_begin(PDT::UNIQUE);
+    fit != VM_Voro<BaseV>::DT_->periodic_triangles_end(PDT::UNIQUE); ++fit) {
+    unsigned int idx0 = fit.get_face()->vertex(0)->info();
+    unsigned int idx1 = fit.get_face()->vertex(1)->info();
+    unsigned int idx2 = fit.get_face()->vertex(2)->info();
+    bool is_aligner_0 = idx0 >= n_dis_;
+    bool is_aligner_1 = idx1 >= n_dis_;
+    bool is_aligner_2 = idx2 >= n_dis_;
+    if (idx0 < idx1 && myran.doub() < alpha) {
+      VM_Voro<BaseV>::v_arr_[idx0].collide(&VM_Voro<BaseV>::v_arr_[idx1], is_aligner_0, is_aligner_1);
+    }
+    if (idx1 < idx2 && myran.doub() < alpha) {
+      VM_Voro<BaseV>::v_arr_[idx1].collide(&VM_Voro<BaseV>::v_arr_[idx2], is_aligner_1, is_aligner_2);
+    }
+    if (idx2 < idx0 && myran.doub() < alpha) {
       VM_Voro<BaseV>::v_arr_[idx2].collide(&VM_Voro<BaseV>::v_arr_[idx0], is_aligner_2, is_aligner_0);
     }
   }

@@ -70,7 +70,7 @@ endif(LINK_STATIC_LIBS)
 # Creating entries for target: topoVM
 # ############################
 
-add_executable( topoVM  gsd.c io2D.cpp comn.cpp main_conti.cpp particle.cpp main_discret.cpp)
+add_executable( topoVM  gsd.c io2D.cpp comn.cpp main_conti.cpp particle.cpp main_discret.cpp main_binary.cpp)
 
 add_to_cached_list( CGAL_EXECUTABLE_TARGETS topoVM )
 
