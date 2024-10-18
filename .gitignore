@@ -13,6 +13,7 @@ VM/*.o
 *.pyd
 *.dat
 numpy.i
+*.pdf
 
 VM_kNN/test/build
 VM_kNN/build
