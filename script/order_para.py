@@ -48,7 +48,8 @@ def get_eta_arr(L, rhoB):
             ])
         elif rhoB == 0.1:
             eta_arr = np.array([
-                0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5
+                0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35,
+                0.4, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47, 0.48, 0.49, 0.5
             ])
     elif L == 400:
         folder = f"{prefix}/L400_new"
@@ -75,7 +76,8 @@ def get_eta_arr(L, rhoB):
             ])
         elif rhoB == 0.1:
             eta_arr = np.array([
-                0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5
+                0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35,
+                0.4, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47, 0.48, 0.49, 0.5
             ])
     elif L == 800:
         folder = f"{prefix}/L800_new2"
@@ -87,12 +89,32 @@ def get_eta_arr(L, rhoB):
                 0.3, 0.35, 0.38,
                 0.4, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47, 0.48, 0.49, 0.5
             ])
+        elif rhoB == 0.1:
+            eta_arr = np.array([
+                0.05,
+                0.1, 0.15,
+                0.2, 0.25,
+                0.3, 0.35,
+                0.4, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47, 0.48, 0.49
+            ])
+        elif rhoB == 0:
+            eta_arr = np.array([
+                0.05,
+                0.1, 0.15,
+                0.2, 0.25,
+                0.3, 0.35,
+                0.4, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47, 0.48, 0.49
+            ])
+    elif L == 1600:
+        folder = f"{prefix}/L1600"
+        if rhoB == 0.03:
+            eta_arr = np.array([0.2, 0.25, 0.3, 0.35, 0.4, 0.42])
     return eta_arr, folder
         
 
 def get_phi_G_arr(L, rhoB, rho0=1., seed=3100, ncut=2000):
     eta_arr, folder = get_eta_arr(L, rhoB)
-    if L == 200 or L == 400:
+    if L == 200 or L == 400 or  L == 1600:
         folder = f"{folder}/phi"
     else:
         folder = f"{folder}/op"
@@ -100,7 +122,7 @@ def get_phi_G_arr(L, rhoB, rho0=1., seed=3100, ncut=2000):
     phi_arr, G_arr = np.zeros((2, n))
 
     for i, eta in enumerate(eta_arr):
-        if L == 200 or L == 400:
+        if L == 200 or L == 400 or L == 1600:
             fin = f"{folder}/{L:d}_{L:d}_{rhoB:.4f}_{eta:.3f}_{rho0:.3f}_{seed:d}.dat"
         elif L == 800:
             t0 = 0
@@ -150,6 +172,11 @@ def cal_order_para_all(dx):
     rhoB_arr = [0, 0.03, 0.05, 0.1]
     for rhoB in rhoB_arr:
         if rhoB == 0.03:
+            if dx == 40:
+                L_arr = [200, 400, 800, 1600]
+            else:
+                L_arr = [200, 400, 800]
+        elif rhoB == 0.1 or rhoB == 0.:
             L_arr = [200, 400, 800]
         else:
             L_arr = [200, 400]
@@ -193,19 +220,19 @@ if __name__ == "__main__":
     dx = 40
     cal_order_para_all(dx=dx)
 
-    fig, axes = plt.subplots(2, 3, sharex=True, constrained_layout=True, sharey="row")
+    # fig, axes = plt.subplots(2, 3, sharex=True, constrained_layout=True, sharey="row")
 
-    rhoB_arr = [0., 0.03, 0.1]
-    for j, rhoB in enumerate(rhoB_arr):
-        if rhoB == 0.03:
-            L_arr = [200, 400, 800]
-        else:
-            L_arr = [200, 400]
-        for L in L_arr:
-            eta, phi, G, G_rho, G_phi = read_eta_phi_G_Grho_Gphi(L, rhoB, dx=dx)
-            axes[0, j].plot(eta, phi, "-o")
-            axes[1, j].plot(eta, G_rho, '-o')
-            # axes[1, j].plot(eta, G_phi, '-s')
-    axes[1, 0].set_ylim(-1, 1)
-    plt.show()
-    plt.close()
+    # rhoB_arr = [0., 0.03, 0.1]
+    # for j, rhoB in enumerate(rhoB_arr):
+    #     if rhoB == 0.03:
+    #         L_arr = [200, 400, 800]
+    #     else:
+    #         L_arr = [200, 400]
+    #     for L in L_arr:
+    #         eta, phi, G, G_rho, G_phi = read_eta_phi_G_Grho_Gphi(L, rhoB, dx=dx)
+    #         axes[0, j].plot(eta, phi, "-o")
+    #         axes[1, j].plot(eta, G_rho, '-o')
+    #         # axes[1, j].plot(eta, G_phi, '-s')
+    # axes[1, 0].set_ylim(-1, 1)
+    # plt.show()
+    # plt.close()

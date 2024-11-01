@@ -80,6 +80,6 @@ if __name__ == "__main__":
     # ax3.plot(x, y)
     # ax3.set_xlim(0)
     # ax3.set_ylim(0)
-    # plt.show()
-    plt.savefig("fig/FIG3.pdf", dpi=200)
+    plt.show()
+    # plt.savefig("fig/FIG3.pdf", dpi=200)
     plt.close()

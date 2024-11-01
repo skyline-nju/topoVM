@@ -105,7 +105,7 @@ if __name__ == "__main__":
     # plt.show()
     # plt.close()
 
-    dx=25
+    dx=40
 
     folder = f"{root_sohrab}/topoVM/dissenters/L2000/coarse_grain_dx{dx:d}"
 
@@ -147,13 +147,15 @@ if __name__ == "__main__":
         ax2.plot(phi_arr, pdf_phi, "-o")
 
         # ax3.plot()
-   
+
+    # ax1.axvline(0.97)
     ax1.set_xscale("log")
     ax1.set_yscale("log")
     ax2.set_xscale("log")
     ax2.set_yscale("log")
     # ax3.set_xscale("log")
     # ax3.set_yscale("log")
+
     plt.show()
     plt.close()
 

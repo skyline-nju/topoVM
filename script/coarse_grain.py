@@ -130,13 +130,13 @@ if __name__ == "__main__":
     # coarse_grain_all(prefix, dx=40, pat="*.gsd")
 
     prefix = f"{root_sohrab}/topoVM/dissenters/L2000"
-    coarse_grain_all(prefix, dx=25, pat="*_d0.0300_*.gsd")
+    coarse_grain_all(prefix, dx=4, pat="L2000_2000_d0.0000_e0.440_r1_s3100.gsd")
 
-    prefix = f"{root_sohrab}/topoVM/dissenters/L2000"
-    coarse_grain_all(prefix, dx=200, pat="*_d0.0300_*.gsd")
+    # prefix = f"{root_sohrab}/topoVM/dissenters/L2000"
+    # coarse_grain_all(prefix, dx=200, pat="*_d0.0300_*.gsd")
 
-    prefix = f"{root_sohrab}/topoVM/dissenters/L2000"
-    coarse_grain_all(prefix, dx=125, pat="*_d0.0300_*.gsd")
+    # prefix = f"{root_sohrab}/topoVM/dissenters/L2000"
+    # coarse_grain_all(prefix, dx=125, pat="*_d0.0300_*.gsd")
 
     # prefix = f"{root_sohrab}/topoVM/dissenters/L800_varied_rhoA"
     # coarse_grain_all(prefix, dx=4, pat="*.gsd")

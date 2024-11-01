@@ -15,7 +15,7 @@ if __name__ == "__main__":
         if rhoB == 0.03:
             L_arr = [200, 400, 800]
         else:
-            L_arr = [200, 400]
+            L_arr = [200, 400, 800]
         for L in L_arr:
             eta, phi, G, G_rho, G_phi = read_eta_phi_G_Grho_Gphi(L, rhoB, dx=dx)
             axes[0, j].plot(eta, phi, "-o", fillstyle="none")
@@ -25,6 +25,6 @@ if __name__ == "__main__":
     axes[1, 0].set_ylim(ymin=-1, ymax=0.7)
     axes[1, 0].axhline(2/3, linestyle="dashed", color="tab:grey")
     axes[1, 1].axhline(2/3, linestyle="dashed", color="tab:grey")
-    # plt.show()
-    plt.savefig("fig/FIG2.pdf")
+    plt.show()
+    # plt.savefig("fig/FIG2.pdf")
     plt.close()

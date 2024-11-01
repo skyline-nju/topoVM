@@ -13,6 +13,7 @@ VM/*.o
 *.pyd
 numpy.i
 *.pdf
+script/fig/snap/L400
 
 VM_kNN/test/build
 VM_kNN/build

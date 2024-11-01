@@ -52,11 +52,14 @@ def func_HS(x, rhoA, rhoB, eta, alpha):
         y[k] += alpha / rho0 * P_k * (S + get_J_kl(k, 0) * x[k] * rhoB)
     return y
 
-def get_f_bar(K, eta, rhoA, rhoB, alpha):
-    x0 = np.zeros(K+1)
-    x0[0] = rhoA
-    for i in range(1, K+1):
-        x0[i] = 0.8 ** i
+def get_f_bar(K, eta, rhoA, rhoB, alpha, f_bar_pre=None):
+    if f_bar_pre is None:
+        x0 = np.zeros(K+1)
+        x0[0] = rhoA
+        for i in range(1, K+1):
+            x0[i] = 0.8 ** i
+    else:
+        x0 = f_bar_pre
     f_bar = fsolve(func_HS, x0, args=(rhoA, rhoB, eta, alpha))
     return f_bar
 
@@ -100,9 +103,10 @@ def get_M_q(qx, qy, M_gg_base, M_gh_base, M_hg_base, M_hh_base):
     return M_gg_q, M_gh_q, M_hg_q, M_hh_q
 
 
-def get_M_0(eta, rhoA, rhoB, alpha, K):
+def get_M_0(eta, rhoA, rhoB, alpha, K, f_bar_pre=None):
     rho0 = rhoA + rhoB
-    f_bar = get_f_bar(K, eta, rhoA, rhoB, alpha)
+    f_bar = get_f_bar(K, eta, rhoA, rhoB, alpha, f_bar_pre=f_bar_pre)
+
     Pk = np.array([get_P_k(k, eta) for k in range(K+1)])
 
     diag_arr = Pk - 1 - alpha
@@ -235,99 +239,138 @@ def cal_sigma_qx_fixed_rhoB(K=50, n=50, skip_neg_mu=False):
     np.savez_compressed(f_out, rhoA=rhoA_arr, eta=eta_arr, sigma=sigma_arr)
 
 
-def PD_rhoB_eta():
-    # cal_sigma_qx_fixed_rho0(K=20, n=200)
-    # cal_sigma_qx_fixed_rho0(K=50, n=200)
-    # cal_sigma_qx_fixed_rho0(K=100, n=200)
+def cal_sigma_q_theta_fixed_rho0(K=50, n=50, n_theta=30, skip_neg_mu=False):
+    rhoB_arr = np.linspace(0, 0.5, n)
+    eta_arr = np.linspace(0, 0.5, n)
+    q = 1e-3
+    rho0 = 1
+    alpha = 1
+    sigma_arr = np.zeros((eta_arr.size, rhoB_arr.size))
+    theta_arr = np.zeros_like(sigma_arr)
 
+    theta_1D = np.linspace(0, np.pi/2, n_theta)
 
-    fig, axes = plt.subplots(1, 3, figsize=(12, 4), constrained_layout=True, sharex=True, sharey=True)
-    K_arr = [20, 50, 100]
-    n = [200, 200, 200]
-    for i, K in enumerate(K_arr):
-        if n[i] == 50:
-            fin = f"data/r1_qx0.0010_K{K:d}.npz"
-        else:
-            fin = f"data/r1_qx0.0010_K{K:d}_n{n[i]:d}.npz"
-        with np.load(fin, "r") as data:
-            rhoB = data["rhoB"]
-            eta = data["eta"]
-            sigma = data["sigma"]
-            state = np.zeros_like(sigma)
-            mask = sigma > 1e-9
-            state[mask] = 1
+    for j, eta in enumerate(eta_arr):
+        print("j=", j)
+        for i, rhoB in enumerate(rhoB_arr):
+            rhoA = rho0 - rhoB
+
+            if skip_neg_mu and eta >= get_eta_c(rhoA, rhoB, alpha=1):
+                sigma_arr[j, i] = -1
+                theta_arr[j, i] = -1
+                continue
+            M_gg_0, M_hh_0, f_bar = get_M_0(eta, rhoA, rhoB, alpha, K)
+            M_gg_base, M_gh_base, M_hg_base, M_hh_base = get_M_cross_base(K)
+            theta_max = None
+            sigma_max = None
+            for i_theta, theta in enumerate(theta_1D):
+                qx = np.cos(theta) * q
+                qy = np.sin(theta) * q
+                M = assemble_matrix(M_gg_0, M_hh_0, M_gg_base, M_gh_base, M_hg_base, M_hh_base, qx, qy)
+                sigma_re = np.max(linalg.eigvals(M).real)
+                if theta_max is None or sigma_re > sigma_max:
+                    theta_max = theta
+                    sigma_max = sigma_re
+            sigma_arr[j, i] = sigma_max
+            theta_arr[j, i] = theta_max
     
-        dx = rhoB[1] - rhoB[0]
-        dy = eta[1] - eta[0]
-        extent = [rhoB[0]-dx/2, rhoB[-1]+dx/2, eta[0]-dy/2, eta[-1]+dy/2]
-        axes[i].imshow(state, origin="lower",extent=extent)
+    f_out = f"data/kinetic/r0{rho0:g}_q{q:.4f}_K{K:d}_n{n:d}_nt{n_theta}.npz"
+    np.savez_compressed(f_out, rhoB=rhoB_arr, eta=eta_arr, sigma=sigma_arr, theta=theta_arr)
 
 
-        eta_c = get_eta_c(1-rhoB, rhoB, alpha=1)
-        axes[i].plot(rhoB, eta_c, c="r")
-        axes[i].set_xlim(rhoB[0], rhoB[-1])
-        axes[i].set_ylim(eta[0], eta[-1])
-
-    plt.show()
-    plt.close()
-
-
-def plot_rhoB_eta_panel(ax, K, n, rho0=1):
-    if n == 50:
-        fin = f"data/r1_qx0.0010_K{K:d}.npz"
-    else:
-        fin = f"data/r1_qx0.0010_K{K:d}_n{n:d}.npz"
-    with np.load(fin, "r") as data:
-        rhoB = data["rhoB"]
-        eta = data["eta"]
-        sigma = data["sigma"]
-        state = np.zeros_like(sigma)
-        mask = sigma > 1e-9
-        state[mask] = 1
-
-    dx = rhoB[1] - rhoB[0]
-    dy = eta[1] - eta[0]
-    extent = [rhoB[0]-dx/2, rhoB[-1]+dx/2, eta[0]-dy/2, eta[-1]+dy/2]
-    ax.imshow(state, origin="lower",extent=extent, aspect="auto")
-    eta_c = get_eta_c(1-rhoB, rhoB, alpha=1)
-    ax.plot(rhoB, eta_c, c="r")
-    ax.set_xlim(rhoB[0], rhoB[-1])
-    ax.set_ylim(eta[0], eta[-1])
-
-def plot_rhoA_eta_panel(ax, K, n, rhoB=0.03):
-    fin = f"data/rB{rhoB:g}_qx0.0010_K{K:d}_n{n:d}.npz"
-    with np.load(fin, "r") as data:
-        eta = data["eta"]
-        rhoA = data["rhoA"]
-        sigma = data["sigma"]
-        state = np.zeros_like(sigma)
-        mask = sigma > 1e-9
-        state[mask] = 1
-        dx = rhoA[1] - rhoA[0]
-        dy = eta[1] - eta[0]
-        extent = [rhoA[0]-dx/2, rhoA[-1]+dx/2, eta[0]-dy/2, eta[-1]+dy/2]
-        ax.imshow(state, origin="lower", extent=extent, aspect="auto")
-        eta_c = get_eta_c(rhoA, rhoB, alpha=1)
-        ax.plot(rhoA, eta_c, c="tab:red")
-
-def PD_rhoA_eta():
-    # cal_sigma_qx_fixed_rhoB(K=20, n=200, skip_neg_mu=True)
-    # cal_sigma_qx_fixed_rhoB(K=50, n=200, skip_neg_mu=True)
-    # cal_sigma_qx_fixed_rhoB(K=100, n=200, skip_neg_mu=True)
-
-    fig, axes = plt.subplots(1, 3, constrained_layout=True, figsize=(12, 4), sharex=True, sharey=True)
-
+def cal_sigma_q_theta_fixed_rhoB(K=50, n=50, n_theta=30, skip_neg_mu=False):
+    rhoA_arr = np.linspace(0, 1.2, n)
+    eta_arr = np.linspace(0, 0.5, n)
+    q = 1e-3
     rhoB = 0.03
-    K_arr = [20, 50, 100]
-    n_arr = [200, 200, 200]
-    for i, ax in enumerate(axes):
-        plot_rhoA_eta_panel(ax, K_arr[i], n_arr[i])
+    alpha = 1
+    sigma_arr = np.zeros((eta_arr.size, rhoA_arr.size))
+    theta_arr = np.zeros_like(sigma_arr)
+    theta_1D = np.linspace(0, np.pi/2, n_theta)
+
+    f_bar_left = None
+    for i, rhoA in enumerate(rhoA_arr):
+        print("i=", i)
+        rho0 = rhoA + rhoB
+        eta_c = get_eta_c(rhoA, rhoB, alpha=alpha)
+        f_bar_down = None
+
+        for j, eta in enumerate(eta_arr):
+            if skip_neg_mu and eta >= eta_c:
+                sigma_arr[j:, i] = -1
+                theta_arr[j:, i] = -1
+                break
+
+            M_gg_0, M_hh_0, f_bar_down = get_M_0(eta, rhoA, rhoB, alpha, K, f_bar_pre=f_bar_down)
+
+            M_gg_base, M_gh_base, M_hg_base, M_hh_base = get_M_cross_base(K)
+            theta_max = None
+            sigma_max = None
+            for i_theta, theta in enumerate(theta_1D):
+                qx = np.cos(theta) * q
+                qy = np.sin(theta) * q
+                M = assemble_matrix(M_gg_0, M_hh_0, M_gg_base, M_gh_base, M_hg_base, M_hh_base, qx, qy)
+
+                sigma_re = np.max(linalg.eigvals(M).real)
+                if theta_max is None or sigma_re > sigma_max:
+                    theta_max = theta
+                    sigma_max = sigma_re
+            sigma_arr[j, i] = sigma_max
+            theta_arr[j, i] = theta_max
+    
+    f_out = f"data/kinetic/rB{rhoB:g}_q{q:.4f}_K{K:d}_n{n:d}_nt{n_theta}.npz"
+    np.savez_compressed(f_out, rhoA=rhoA_arr, eta=eta_arr, sigma=sigma_arr, theta=theta_arr)
 
 
-    plt.show()
-    plt.close()
+def lin_diagram_w_color(fin, ax=None, ret_im=False):
+    if ax is None:
+        show_fig = True
+        fig, ax = plt.subplots(1, 1, constrained_layout=True)
+    else:
+        show_fig = False
+
+    with np.load(fin, "r") as data:
+        if "rhoB" in data:
+            x = data["rhoB"]
+        else:
+            x = data["rhoA"]
+        eta = data["eta"]
+        sigma = data["sigma"]
+        state = np.zeros_like(sigma)
+        mask = sigma > 1e-9
+        state[mask] = 1
+        theta = data["theta"]
+
+    dx = x[1] - x[0]
+    dy = eta[1] - eta[0]
+    extent = [x[0]-dx/2, x[-1]+dx/2, eta[0]-dy/2, eta[-1]+dy/2]
+
+
+    palette = plt.cm.plasma.with_extremes(over='w', under="tab:grey", bad='b')
+    mask = np.logical_and(state == 0, theta >= 0)
+    theta[mask] = np.pi
+
+    im = ax.imshow(theta, origin="lower", cmap=palette, vmin=0, vmax=np.pi/2, extent=extent, aspect="auto")
+
+    if show_fig:
+        plt.show()
+        plt.close()
+    elif ret_im:
+        return im
 
 
 if __name__ == "__main__":
-    PD_rhoA_eta()
-    # PD_rhoB_eta()
+    K = 200
+
+    # cal_sigma_q_theta_fixed_rhoB(K=2, n=200, n_theta=60, skip_neg_mu=True)
+    cal_sigma_q_theta_fixed_rho0(K=1, n=200, n_theta=60, skip_neg_mu=True)
+
+
+
+    # fins = ["data/kinetic/r01_q0.0010_K100_n200_nt60.npz", "data/kinetic/rB0.03_q0.0010_K100_n200_nt60.npz"]
+
+    # fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 4), constrained_layout=True)
+    # lin_diagram_w_color(fins[0], ax1)
+    # lin_diagram_w_color(fins[1], ax2)
+    # plt.show()
+    # plt.close()
