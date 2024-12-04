@@ -23,13 +23,13 @@ def rhoB_vs_eta(ax, ms=4):
     rhoB, eta, state = read_states(fin)
 
     mask = state == 0
-    ax.plot(rhoB[mask], eta[mask], "o", c="tab:grey", ms=ms, fillstyle="none", label="disordered\ngas")
+    ax.plot(rhoB[mask], eta[mask], "o", c="tab:grey", ms=ms, fillstyle="none", label="disordered gas")
 
     mask = state == 1
-    ax.plot(rhoB[mask], eta[mask], "x", c="tab:orange", ms=ms, fillstyle="none", label="polar liquid")
+    ax.plot(rhoB[mask], eta[mask], "s", c="tab:orange", ms=ms, fillstyle="none", label="polar liquid")
 
     mask = state == 2
-    ax.plot(rhoB[mask], eta[mask], "s", c="tab:blue", ms=ms, fillstyle="none", label="bands")
+    ax.plot(rhoB[mask], eta[mask], ">", c="tab:blue", ms=ms, fillstyle="none", label="bands")
 
     ax.set_xlim(0, 0.505)
     ax.set_ylim(0.045, 0.505)

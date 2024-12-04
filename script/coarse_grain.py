@@ -117,20 +117,52 @@ def coarse_grain_all(prefix, dx, forced_updating=False, pat="*.gsd"):
 if __name__ == "__main__":
     from datetime import datetime
 
-    # prefix = f"{root_sohrab}/topoVM/dissenters/L400_new"
-    # coarse_grain_all(prefix, dx=40, pat="*.gsd")
-
-    # prefix = f"{root_sohrab}/topoVM/dissenters/L200_new"
-    # coarse_grain_all(prefix, dx=40, pat="*.gsd")
-
-    # prefix = f"{root_sohrab}/topoVM/dissenters/L800_new2"
-    # coarse_grain_all(prefix, dx=40, pat="*.gsd")
-
-    # prefix = f"{root_sohrab}/topoVM/dissenters/L1600"
-    # coarse_grain_all(prefix, dx=40, pat="*.gsd")
-
     prefix = f"{root_sohrab}/topoVM/dissenters/L2000"
     coarse_grain_all(prefix, dx=4, pat="L2000_2000_d0.0000_e0.440_r1_s3100.gsd")
+    coarse_grain_all(prefix, dx=2, pat="L2000_2000_d0.0000_e0.440_r1_s3100.gsd")
+    coarse_grain_all(prefix, dx=40, pat="L2000_2000_d0.0000_e0.450_r1_s3100.gsd")
+    coarse_grain_all(prefix, dx=4, pat="L2000_2000_d0.0300_e0.100_r1_s3100.gsd")
+    coarse_grain_all(prefix, dx=4, pat="L2000_2000_d0.0300_e0.300_r1_s3100.gsd")
+    coarse_grain_all(prefix, dx=2, pat="L2000_2000_d0.0300_e0.300_r1_s3100.gsd")
+    coarse_grain_all(prefix, dx=4, pat="L2000_2000_d0.0300_e0.420_r1_s3100.gsd")
+    coarse_grain_all(prefix, dx=4, pat="L2000_2000_d0.0000_e0.480_r1_s3100.gsd")
+    coarse_grain_all(prefix, dx=4, pat="L2000_2000_d0.0000_e0.500_r1_s3100.gsd")
+    coarse_grain_all(prefix, dx=25, pat="L2000_2000_d0.0300_e0.100_r1_s3100.gsd")
+    coarse_grain_all(prefix, dx=25, pat="L2000_2000_d0.0300_e0.300_r1_s3100.gsd")
+    coarse_grain_all(prefix, dx=25, pat="L2000_2000_d0.0300_e0.420_r1_s3100.gsd")
+    coarse_grain_all(prefix, dx=10, pat="L2000_2000_d0.0300_e0.300_r1_s3100.gsd")
+    coarse_grain_all(prefix, dx=10, pat="L2000_2000_d0.0300_e0.420_r1_s3100.gsd")
+    coarse_grain_all(prefix, dx=20, pat="L2000_2000_d0.0300_e0.300_r1_s3100.gsd")
+    coarse_grain_all(prefix, dx=20, pat="L2000_2000_d0.0300_e0.420_r1_s3100.gsd")
+    coarse_grain_all(prefix, dx=40, pat="L2000_2000_d0.0300_e0.300_r1_s3100.gsd")
+    coarse_grain_all(prefix, dx=40, pat="L2000_2000_d0.0300_e0.420_r1_s3100.gsd")
+    coarse_grain_all(prefix, dx=40, pat="L2000_2000_d0.0000_e0.440_r1_s3100.gsd")
+    coarse_grain_all(prefix, dx=80, pat="L2000_2000_d0.0300_e0.300_r1_s3100.gsd")
+    coarse_grain_all(prefix, dx=80, pat="L2000_2000_d0.0300_e0.420_r1_s3100.gsd")
+    coarse_grain_all(prefix, dx=100, pat="L2000_2000_d0.0300_e0.300_r1_s3100.gsd")
+    coarse_grain_all(prefix, dx=100, pat="L2000_2000_d0.0300_e0.420_r1_s3100.gsd")
+    coarse_grain_all(prefix, dx=125, pat="L2000_2000_d0.0300_e0.300_r1_s3100.gsd")
+    coarse_grain_all(prefix, dx=125, pat="L2000_2000_d0.0300_e0.420_r1_s3100.gsd")
+    coarse_grain_all(prefix, dx=200, pat="L2000_2000_d0.0300_e0.300_r1_s3100.gsd")
+    coarse_grain_all(prefix, dx=200, pat="L2000_2000_d0.0300_e0.420_r1_s3100.gsd")
+    coarse_grain_all(prefix, dx=400, pat="L2000_2000_d0.0300_e0.300_r1_s3100.gsd")
+
+    prefix = f"{root_sohrab}/topoVM/dissenters/L1000"
+    coarse_grain_all(prefix, dx=4, pat="L1000_1000_d0.0300_e0.300_r1_s3100.gsd")
+    coarse_grain_all(prefix, dx=4, pat="L1000_1000_d0.0300_e0.450_r1_s3100.gsd")
+
+    prefix = f"{root_sohrab}/topoVM/dissenters/L400_new"
+    coarse_grain_all(prefix, dx=40, pat="*.gsd")
+    coarse_grain_all(prefix, dx=4, pat="L400_400_d0.2000_e0.100_r1_s3100.gsd")
+
+    prefix = f"{root_sohrab}/topoVM/dissenters/L200_new"
+    coarse_grain_all(prefix, dx=40, pat="*.gsd")
+
+    prefix = f"{root_sohrab}/topoVM/dissenters/L800_new2"
+    coarse_grain_all(prefix, dx=40, pat="*.gsd")
+
+    prefix = f"{root_sohrab}/topoVM/dissenters/L1600"
+    coarse_grain_all(prefix, dx=40, pat="*.gsd")
 
     # prefix = f"{root_sohrab}/topoVM/dissenters/L2000"
     # coarse_grain_all(prefix, dx=200, pat="*_d0.0300_*.gsd")

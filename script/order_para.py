@@ -48,7 +48,7 @@ def get_eta_arr(L, rhoB):
             ])
         elif rhoB == 0.1:
             eta_arr = np.array([
-                0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35,
+                0.05, 0.1, 0.15, 0.2, 0.25, 0.28, 0.3, 0.33, 0.35, 0.38,
                 0.4, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47, 0.48, 0.49, 0.5
             ])
     elif L == 400:
@@ -76,7 +76,7 @@ def get_eta_arr(L, rhoB):
             ])
         elif rhoB == 0.1:
             eta_arr = np.array([
-                0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35,
+                0.05, 0.1, 0.15, 0.2, 0.25, 0.28, 0.3, 0.33, 0.35, 0.38,
                 0.4, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47, 0.48, 0.49, 0.5
             ])
     elif L == 800:
@@ -93,8 +93,8 @@ def get_eta_arr(L, rhoB):
             eta_arr = np.array([
                 0.05,
                 0.1, 0.15,
-                0.2, 0.25,
-                0.3, 0.35,
+                0.2, 0.25, 0.28,
+                0.3, 0.33, 0.35, 0.38,
                 0.4, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47, 0.48, 0.49
             ])
         elif rhoB == 0:
@@ -132,13 +132,14 @@ def get_phi_G_arr(L, rhoB, rho0=1., seed=3100, ncut=2000):
     return eta_arr, phi_arr, G_arr
 
 
-def get_Grho_Gphi_arr(L, bar_rhoB, dx=25, rho0=1., seed=3100):
-    def cal_G(f):
-        f4_m = np.mean(f ** 4)
-        f2_m = np.mean(f ** 2)
-        G = 1 - f4_m / (3 * f2_m ** 2)
-        return G
+def cal_G(f):
+    f4_m = np.mean(f ** 4)
+    f2_m = np.mean(f ** 2)
+    G = 1 - f4_m / (3 * f2_m ** 2)
+    return G
 
+
+def get_Grho_Gphi_arr(L, bar_rhoB, dx=25, rho0=1., seed=3100):
     eta_arr, folder = get_eta_arr(L, bar_rhoB)
     G_rho_arr = np.zeros_like(eta_arr)
     G_phi_arr = np.zeros_like(eta_arr)
@@ -185,7 +186,42 @@ def cal_order_para_all(dx):
             eta, G_rho, G_phi = get_Grho_Gphi_arr(L, rhoB, dx=dx)
             fout = f"data/order_para/L{L:g}_rhoB{rhoB:g}_dx{dx:g}.npz"
             np.savez_compressed(fout, eta=eta, phi=phi, G=G, G_rho=G_rho, G_phi=G_phi)
-    
+
+
+def cal_order_para_varied_dx(eta=0.3):
+    L = 2000
+    seed = 3100
+    bar_rhoB=0.03
+    rho0=1
+    dx_arr = np.array([10, 20, 40, 80, 100, 125, 200, 400])
+    G_rho_arr = np.zeros(dx_arr.size)
+    ncut = 15
+    for i, dx in enumerate(dx_arr):
+        folder = f"{root_sohrab}/topoVM/dissenters/L2000/coarse_grain_dx{dx:d}"
+        basename = f"L{L:d}_{L:d}_d{bar_rhoB:.4f}_e{eta:.3f}_r{rho0:g}_s{seed:d}.npz"
+        fname = f"{folder}/{basename}"
+        with np.load(fname, "r") as data:
+            t = data["t"]
+            x = data["x"]
+            fields = data["fields"]
+
+            rhoA = fields[ncut:, 0]
+            rhoB = fields[ncut:, 1]
+            mA_x = fields[ncut:, 2]
+            mA_y = fields[ncut:, 4]
+
+        G_rho_arr[i] = cal_G(rhoA)
+    fout = f"data/order_para/L{L:g}_rhoB{bar_rhoB:g}_eta{eta:g}.npz"
+    np.savez_compressed(fout, dx=dx_arr, G_rho=G_rho_arr)
+
+
+def get_order_para_varied_dx(eta=0.3, L=2000, rhoB=0.03):
+    fin = f"data/order_para/L{L:g}_rhoB{rhoB:g}_eta{eta:g}.npz"
+    with np.load(fin, "r") as data:
+        dx_arr = data["dx"]
+        G_rho_arr = data["G_rho"]
+    return dx_arr, G_rho_arr
+
 
 def read_eta_phi_G_Grho_Gphi(L, rhoB, dx):
     fin = f"data/order_para/L{L:g}_rhoB{rhoB:g}_dx{dx:g}.npz"
@@ -217,9 +253,9 @@ def plot_phi_G_G_rho():
 
 
 if __name__ == "__main__":
-    dx = 40
-    cal_order_para_all(dx=dx)
-
+    # dx = 40
+    # cal_order_para_all(dx=dx)
+    cal_order_para_varied_dx()
     # fig, axes = plt.subplots(2, 3, sharex=True, constrained_layout=True, sharey="row")
 
     # rhoB_arr = [0., 0.03, 0.1]

@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from add_line import add_line
+
 
 root_sohrab = "/run/user/1148/gvfs/sftp:host=sohrab003,user=yduan/scratch03.local/yduan"
 root_rudabeh = "/run/user/1148/gvfs/sftp:host=rudabeh002,user=yduan/scratch03.local/yduan"
@@ -110,10 +112,14 @@ if __name__ == "__main__":
     folder = f"{root_sohrab}/topoVM/dissenters/L2000/coarse_grain_dx{dx:d}"
 
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12, 4), constrained_layout=True)
-    eta_arr = np.array([0.1, 0.3, 0.42])
-    ncut_arr = [6, 40, 30]
+    eta_arr = [0.1, 0.3, 0.42]
+    ncut_arr = [6, 40, 30, 20]
+
+    fnames = [f"{folder}/L2000_2000_d0.0300_e{eta:.3f}_r1_s3100.npz" for eta in eta_arr]
+    fnames.append(f"{folder}/L2000_2000_d0.0000_e0.440_r1_s3100.npz")
+    eta_arr.append(0.44)
     for i, eta in enumerate(eta_arr):
-        fname = f"{folder}/L2000_2000_d0.0300_e{eta:.3f}_r1_s3100.npz"
+        fname = fnames[i]
         ncut = ncut_arr[i]
         with np.load(fname, "r") as data:
             t = data["t"]
@@ -141,6 +147,9 @@ if __name__ == "__main__":
         
         ax3.plot(rho_arr, phi_arr, "-o")
 
+        # pdf_rho, bin_edges = np.histogram(rhoA, bins=bins, density=True, weights=rhoA)
+        # rho_arr = (bin_edges[1:] + bin_edges[:-1]) * 0.5
+        # ax2.plot(rho_arr, pdf_rho, "-o")
         bins = 100
         pdf_phi, bin_edges = np.histogram(phi, bins=bins, density=True)
         phi_arr = (bin_edges[1:] + bin_edges[:-1]) * 0.5
@@ -156,6 +165,8 @@ if __name__ == "__main__":
     # ax3.set_xscale("log")
     # ax3.set_yscale("log")
 
+    # add_line(ax1, 0, 1, 0.6, -1.7)
+    add_line(ax2, 0, 0.1, 0.6, 1)
     plt.show()
     plt.close()
 

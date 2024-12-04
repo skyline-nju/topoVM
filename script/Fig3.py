@@ -1,85 +1,93 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import image as mpimg
+from order_para import read_order_para_series
+from GNF import read_GNF
+from band_profile import plot_band_profiles_varied_rhoB, plot_band_profiles_varied_eta
+from add_line import add_line
 
 plt.rcParams["xtick.direction"] = "in"
 plt.rcParams["ytick.direction"] = "in"
 
 
 if __name__ == "__main__":
-    fig = plt.figure(figsize=(8, 5.5), layout="constrained")
+    fig = plt.figure(figsize=(8, 5), layout="constrained")
+    subfigs = fig.subfigures(1, 2, width_ratios=[2.3, 1])
+    ax_snap = subfigs[1].subplots(2, 1)
+    axes = subfigs[0].subplots(2, 2, sharex=True, sharey="row")
 
-    fs = "xx-large"
-    subfigs = fig.subfigures(2, 1, height_ratios=[1, 1.3])
 
-    ax_snaps = subfigs[0].subplots(1, 4)
+    snaps = ["fig/snap/L400_e0.1_rB0.03.png",
+            "fig/snap/L400_e0.1_rB0.30.png"
+            # "fig/snap/L400_e0.3_rB0.30.png"
+            ]
 
-    snaps = ["fig/snap/L800_e0.3_r1_rB0.1_n4.png",
-             "fig/snap/L800_e0.3_r1_rB0.1_n2.png",
-             "fig/snap/L800_e0.3_r1_rB0.1_n1.png",
-             "fig/snap/L800_e0.3_r1.6_rB0.1_n1.png"
-             ]
+    for i, ax in enumerate(ax_snap):
+            im = mpimg.imread(snaps[i])
+            ax.imshow(im)
+            ax.set_xticklabels([])
+            ax.set_yticklabels([])
+            ax.set_xticks([])
+            ax.set_yticks([])
+            ax.set_aspect("equal")
+            # ax.set_title(labels[i], fontsize=fs)
     
-    labels = [
-        r"(a) $\bar{\rho}_A=0.9$",
-        r"(b) $\bar{\rho}_A=0.9$",
-        r"(c) $\bar{\rho}_A=0.9$",
-        r"(d) $\bar{\rho}_A=1.5$"
-    ]
-    for i, ax in enumerate(ax_snaps):
-        im = mpimg.imread(snaps[i])
-        ax.imshow(im)
-        ax.set_xticklabels([])
-        ax.set_yticklabels([])
-        ax.set_xticks([])
-        ax.set_yticks([])
-        ax.set_aspect("equal")
-        ax.set_title(labels[i], fontsize=fs)
+    rhoB_arr = [0.03, 0.1, 0.2, 0.3]
+    plot_band_profiles_varied_rhoB(axes[:, 0], rhoB_arr, lw=1.5)
+    axes[0, 0].set_yscale("log")
+
+    plot_band_profiles_varied_eta(axes[:, 1], lw=1.5)
+
+    axes[0, 0].set_xlim(0, 400)
+
+    axes[1, 1].set_xlabel(r"$x$", fontsize="xx-large")
+    axes[1, 0].set_xlabel(r"$x$", fontsize="xx-large")
+    axes[0, 0].set_ylabel(r"$\langle \rho_A \rangle_{y, t} $", fontsize="xx-large")
+    # axes[1, 0].set_ylabel(r"$\frac{\langle m_{x,A}\rangle_{y, t}}{\langle \rho_A \rangle_{y, t}}$", fontsize="xx-large")
+    axes[1, 0].set_ylabel(r"$\langle m_{x,A}\rangle_{y, t} \slash \langle \rho_A \rangle_{y, t}$", fontsize="xx-large")
+
+    ax_snap[0].set_title(r"$\eta=0.1$", fontsize="xx-large")
+    axes[0, 0].set_title(r"$\eta=0.1$", fontsize="xx-large")
+    axes[0, 1].set_title(r"$\bar{\rho}_B=0.3$", fontsize="xx-large")
+
+    axes[0, 0].legend(frameon=False, handlelength=1, title=r"$\bar{\rho}_B=$", labelspacing=0.2, title_fontsize="x-large", fontsize="large")
+    axes[0, 1].legend(frameon=False, handlelength=1, title=r"$\eta=$", labelspacing=0.2, title_fontsize="x-large", fontsize="large")
+
+    ax_snap[0].text(0.01, 0.9, r"(c) $\bar{\rho}_B=0.03$", transform=ax_snap[0].transAxes, fontsize="xx-large")
+    ax_snap[1].text(0.01, 0.9, r"(f) $\bar{\rho}_B=0.3$", transform=ax_snap[1].transAxes, fontsize="xx-large")
+
+    axes[0, 0].text(0.01, 0.88, r"(a)", transform=axes[0, 0].transAxes, fontsize="xx-large")
+    axes[1, 0].text(0.01, 0.88, r"(d)", transform=axes[1, 0].transAxes, fontsize="xx-large")
+    axes[0, 1].text(0.01, 0.88, r"(b)", transform=axes[0, 1].transAxes, fontsize="xx-large")
+    axes[1, 1].text(0.01, 0.88, r"(e)", transform=axes[1, 1].transAxes, fontsize="xx-large")
 
 
-    (ax1, ax2, ax3) = subfigs[1].subplots(1, 3, width_ratios=[1, 1, 0.9])
+    ax_snap[0].spines['bottom'].set_color("tab:blue")
+    ax_snap[0].spines['top'].set_color("tab:blue")
+    ax_snap[0].spines['left'].set_color("tab:blue")
+    ax_snap[0].spines['right'].set_color("tab:blue")
 
-    profiles = ["data/profile/L800_800_d0.1000_e0.300_r1_s2004.npz",
-                "data/profile/L800_800_d0.1000_e0.300_r1_s2002.npz",
-                "data/profile/L800_800_d0.1000_e0.300_r1_s2011.npz"]
-    labels = ["(a)", "(b)", "(c)"]
-    colors = ["tab:red", "tab:green", "tab:blue"]
-    for i, profile in enumerate(profiles):
-        with np.load(profile, "r") as data:
-            x, rhoA, mA = data["x"], data["rhoA"], data["mA"]
-        ax1.plot(x, rhoA, label=labels[i], c=colors[i])
-    ax1.set_xlim(0, 800)
-    ax1.set_ylim(ymax=4.2)
-    ax1.set_xlabel(r"$x$", fontsize=fs)
-    ax1.set_title(r"(e) $\langle \rho_A(\mathbf{r}, t)\rangle_y$", fontsize=fs)
-    ax1.legend(frameon=False, ncols=3, handlelength=1, fontsize="large", columnspacing=1)
+    ax_snap[1].spines['bottom'].set_color("tab:red")
+    ax_snap[1].spines['top'].set_color("tab:red")
+    ax_snap[1].spines['left'].set_color("tab:red")
+    ax_snap[1].spines['right'].set_color("tab:red")
 
+    ax_snap[0].arrow(0.1, 0.13, 0.15, 0, transform=ax_snap[0].transAxes, color="k", head_length=0.04, width=0.012)
+    ax_snap[0].arrow(0.1, 0.13, 0, 0.15, transform=ax_snap[0].transAxes, color="k", head_length=0.04, width=0.012)
+    ax_snap[0].text(0.2, 0.03, r"$x$", transform=ax_snap[0].transAxes, fontsize="xx-large")
+    ax_snap[0].text(0.01, 0.3, r"$y$", transform=ax_snap[0].transAxes, fontsize="xx-large")
 
-    rho0_arr = np.array([1.0, 1.2, 1.4, 1.6, 1.8])
-    m_arr = np.zeros_like(rho0_arr)
-    for i, rho0 in enumerate(rho0_arr):
-        filename = f"data/time_ave_profile/L800_800_rB0.1_e0.3_r{rho0:.2f}.npz"
-        with np.load(filename, "r") as data:
-            x, rhoA, mA = data["x"], data["rhoA"], data["mA"]
-        line, = ax2.plot(x, np.roll(rhoA, 40), label=r"$%g$" % (rho0-0.1))
-        m_arr[i] = np.mean(mA)
-        ax3.plot(rho0_arr[i] - 0.1, m_arr[i], "o", c=line.get_c(), fillstyle="none")
-    
-    ax2.set_title(r"(f) $\langle \rho_A(\mathbf{r}, t)\rangle_{y, t}$", fontsize=fs)
-    ax2.set_xlim(0, 800)
-    ax2.set_xlabel(r"$x$", fontsize=fs)
-    ax3.set_xlabel(r"$\bar{\rho}_A$", fontsize=fs)
+    dx = 0.25
+    ax_cb = ax_snap[1].inset_axes([0, 0, dx, dx])
+    ax_cb.set_xticklabels([])
+    ax_cb.set_yticklabels([])
+    ax_cb.set_xticks([])
+    ax_cb.set_yticks([])
+    im = mpimg.imread("fig/circle2.png")
+    ax_cb.imshow(im)
+    # ax_cb.set_title(r"$\theta_i$", fontsize=fs)
+    ax_cb.set_title(r"$\theta_i$", fontsize="xx-large")
 
-    ax3.set_title(r"(g) $\langle \mathbf{w}_A(\mathbf{r},t)\cdot \hat{\mathbf{e}}_x\rangle_{\mathbf{r}, t}$", fontsize=fs)
-    ax2.legend(title=r"$\bar{\rho}_A=$", ncols=1, frameon=False, title_fontsize="large")
-    ax2.set_ylim(ymax=4.2)
-    # p = np.polyfit(rho0_arr, m_arr, deg=1)
-    # x = np.linspace(0, 1.8)
-    # y = p[0] * x + p[1]
-    # ax2.axhline(-p[1]/p[0])
-    # ax3.plot(x, y)
-    # ax3.set_xlim(0)
-    # ax3.set_ylim(0)
     plt.show()
-    # plt.savefig("fig/FIG3.pdf", dpi=200)
+#     plt.savefig("fig/FIG3.pdf", dpi=200)
     plt.close()

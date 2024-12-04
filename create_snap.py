@@ -559,19 +559,19 @@ def split(s: hoomd.Snapshot, x_shift=0):
 
 
 if __name__ == "__main__":
-    folder = "/scratch03.local/yduan/topoVM/dissenters/L800_new2/"
+    folder = "/scratch03.local/yduan/topoVM/dissenters/L400_new"
     # folder = "build/data"
-    basename = "L800_800_d0.1000_e0.300_r1_s2011.gsd"
+    basename = "L400_400_d0.3000_e0.200_r1_s3100.gsd"
 
     fname = f"{folder}/{basename}"
     snap = read_one_frame(fname, -1)
     # snap = duplicate(snap, 2, 2)
     # snap = scale(snap, 2, 2, 0.25)
-    snap = add_A_particles(snap, nA_added=32000)
+    # snap = add_A_particles(snap, nA_added=32000)
     snap.configuration.step = 0
 
     snap = sort_by_type(snap)
-    fout = f"{folder}/L800_800_d0.095238_e0.300_r1.05_s2001.gsd"
+    fout = f"{folder}/L400_400_d0.3000_e0.200_r1_s2049.gsd"
     f = hoomd.open(name=fout, mode='wb')
     f.append(snap)
 
