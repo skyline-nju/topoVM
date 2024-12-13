@@ -249,7 +249,7 @@ def PD_w_fixed_rho0():
     ax3.set_ylim(-1, 0.75)
 
     ax3.axhline(2/3, linestyle="dashed", c="tab:grey")
-    ax1.axvline(0.03, linestyle="dotted", c="tab:brown", lw=2)
+    ax1.axvline(0.03, linestyle="dashed", c="tab:brown", lw=1.5)
 
     rhoB_vs_eta(ax1)
     # rhoA_vs_eta(ax2)
@@ -272,13 +272,41 @@ def PD_w_fixed_rho0():
     ax1.text(0.84, 0.03, r"$\bar{\rho}_B$", transform=ax1.transAxes, fontsize=fs, bbox=bbox)
     ax2.text(0.78, 0.06, r"$\eta$", transform=ax2.transAxes, fontsize=fs)
     ax3.text(0.78, 0.06, r"$\eta$", transform=ax3.transAxes, fontsize=fs)
-    ax2.text(0.02, 0.77, r"$\langle \phi\rangle$", transform=ax2.transAxes, fontsize=fs)
+    ax2.text(0.02, 0.77, r"$\langle \varphi\rangle$", transform=ax2.transAxes, fontsize=fs)
     ax3.text(0.02, 0.77, r"$G_\rho$", transform=ax3.transAxes, fontsize=fs)
 
     ax1.plot(0.03, 0.1, "v", c="tab:pink", ms=8)
     ax1.plot(0.03, 0.3, "p", c="tab:green", ms=8)
     ax1.plot(0.03, 0.42, "^", c="tab:red", ms=8)
 
+
+    ax1.annotate(r'$\bar{\rho}_{B,l}$',
+                 xy=(0.03, 0.175), xycoords='data',
+                 xytext=(0.1, 0.175), textcoords='data',
+                 arrowprops=dict(facecolor='tab:brown', shrink=0.05, edgecolor="tab:brown"),
+                 horizontalalignment='left', verticalalignment='center', fontsize="xx-large", color="tab:brown")
+
+    ax1.annotate(r'$\eta_t$',
+                 xy=(0.3, 0.325), xycoords='data',
+                 xytext=(0.4, 0.325), textcoords='data',
+                 arrowprops=dict(facecolor='k', shrink=0.05, edgecolor="k"),
+                 horizontalalignment='left', verticalalignment='center', fontsize="xx-large", color="k")
+    
+    # ax2.annotate(r'$\eta_l$',
+    #              xy=(0.225, 0.45), xycoords='data',
+    #              xytext=(0.275, 0.45), textcoords='data',
+    #              arrowprops=dict(facecolor='k', shrink=0.03),
+    #              horizontalalignment='left', verticalalignment='center', fontsize="xx-large")
+    # ax2.annotate(r'$\eta_h$',
+    #              xy=(0.39, 0.3), xycoords='data',
+    #              xytext=(0.34, 0.3), textcoords='data',
+    #              arrowprops=dict(facecolor='k', shrink=0.03),
+    #              horizontalalignment='right', verticalalignment='center', fontsize="xx-large")
+    ax2.annotate(r'$\eta_t$',
+                 xy=(0.445, 0.8), xycoords='data',
+                 xytext=(0.395, 0.8), textcoords='data',
+                 arrowprops=dict(facecolor='k', shrink=0.03),
+                 horizontalalignment='right', verticalalignment='center', fontsize="xx-large")
     subfigs_right_upper[1].text(0.035, 0.435, r"$2/3$", c="tab:grey", fontsize="large")
     subfigs_right_upper[0].text(0.1, 0.016, r"$0.03$", c="tab:brown", fontsize="large")
 
@@ -336,8 +364,10 @@ def PD_w_fixed_rho0():
     # ax_cb.set_title(r"$\theta_i$", fontsize=fs)
     ax_cb.set_xlabel(r"$\theta_i$", fontsize=fs)
 
-    # plt.show()
-    plt.savefig("fig/FIG1.pdf", dpi=150)
+
+
+    plt.show()
+    # plt.savefig("fig/FIG1.pdf", dpi=150)
     plt.close()
 
 if __name__ == "__main__":

@@ -120,7 +120,12 @@ def plot_band_profiles_varied_rhoB(axes=None, rhoB_arr=None, lw=1):
         fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
         flag_show = True
     else:
-        ax1, ax2 = axes
+        try:
+            if axes.size == 2:
+                ax1, ax2 = axes
+        except AttributeError:
+            ax1 = axes
+            ax2 = None
         flag_show = False
 
     prefix = f"{root_sohrab}/topoVM/dissenters/L400_new2"
@@ -143,7 +148,8 @@ def plot_band_profiles_varied_rhoB(axes=None, rhoB_arr=None, lw=1):
             with np.load(fout, "r") as data:
                 x, rho_m, mx_m = data["x"], data["rhoA"], data["mA"]
         ax1.plot(x, rho_m, lw=lw, label=r"$%g$" % rhoB)
-        ax2.plot(x, mx_m/rho_m, lw=lw)
+        if ax2 is not None:
+            ax2.plot(x, mx_m/rho_m, lw=lw)
 
         if flag_show:
             np.savez_compressed(fout, x=x, rhoA=rho_m, mA=mx_m)
@@ -167,7 +173,7 @@ def plot_band_profiles_varied_eta(axes=None, lw=1):
     npz_folder = f"{prefix}/coarse_grain_dx4"
 
     eta_arr = [0.1, 0.2, 0.3]
-    c_arr = ["tab:red", "tab:purple", "tab:cyan"]
+    c_arr = ["tab:red", "tab:purple", "tab:brown"]
     seed = 2049
     
     for i, eta in enumerate(eta_arr):

@@ -110,7 +110,7 @@ def one_column():
     plt.close()
 
 if __name__ == "__main__":
-    fig, (ax2, ax3, ax1) = plt.subplots(1, 3, figsize=(8, 3.4), layout="constrained")
+    fig, (ax3, ax1, ax2) = plt.subplots(1, 3, figsize=(8, 3.4), layout="constrained")
     n_mean, n_var = read_GNF(2000, dx=2)
     ax1.plot(n_mean, n_var, "-o", fillstyle="none", c="tab:orange", ms=4)
     n_mean, n_var = read_GNF(2000, dx=2, rhoB=0, eta=0.45)
@@ -149,7 +149,8 @@ if __name__ == "__main__":
         bins = 100
         pdf_rho, bin_edges = np.histogram(rhoA, bins=bins, density=True)
         rho_arr = (bin_edges[1:] + bin_edges[:-1]) * 0.5
-        ax2.plot(rho_arr, pdf_rho, mk_list[i], fillstyle="none", c=clist[i], ms=4)
+        if i != 3:
+            ax2.plot(rho_arr, pdf_rho, mk_list[i], fillstyle="none", c=clist[i], ms=4)
 
         phi_arr = np.zeros_like(rho_arr)
         for j in range(rho_arr.size):
@@ -157,11 +158,11 @@ if __name__ == "__main__":
             if np.sum(mask) > 0:
                 phi_arr[j] = np.mean(phi[mask])
         if i == 3:
-            rho_arr = rho_arr[2:]
-            phi_arr = phi_arr[2:]
+            rho_arr = rho_arr[3:]
+            phi_arr = phi_arr[3:]
         ax3.plot(rho_arr, phi_arr, mk_list[i], fillstyle="none", c=clist[i], ms=4, label=label_list[i])
 
-    ax3.axvline(1, linestyle="dashed", c="tab:grey")
+    ax3.axvline(0.97, linestyle="dashed", c="tab:grey")
     ax1.set_xscale("log")
     ax1.set_yscale("log")
     ax2.set_xscale("log")
@@ -183,16 +184,16 @@ if __name__ == "__main__":
     # ax3.set_xlabel(r"$\rho_A(\mathbf{r})$", fontsize="xx-large")
 
     ax2.text(0.02, 0.75, r"$P(\rho_A)$", fontsize="xx-large", transform=ax2.transAxes, rotation=90)
-    ax3.text(0.03, 0.75, r"$\phi(\mathbf{r})$", fontsize="xx-large", transform=ax3.transAxes, rotation=90)
+    ax3.text(0.03, 0.85, r"$\varphi_l$", fontsize="xx-large", transform=ax3.transAxes, rotation=90)
     ax1.text(0.03, 0.8, r"$\Delta n$", fontsize="xx-large", transform=ax1.transAxes, rotation=90)
 
     ax2.text(0.82, 0.04, r"$\rho_A$", fontsize="xx-large", transform=ax2.transAxes)
-    ax3.text(0.7, 0.04, r"$\rho_A(\mathbf{r})$", fontsize="xx-large", transform=ax3.transAxes)
+    ax3.text(0.82, 0.04, r"$\rho_A$", fontsize="xx-large", transform=ax3.transAxes)
     ax1.text(0.77, 0.04, r"$\langle n\rangle$", fontsize="xx-large", transform=ax1.transAxes)
 
-    ax1.set_title(r"(c)", fontsize="xx-large")
-    ax2.set_title(r"(a)", fontsize="xx-large")
-    ax3.set_title(r"(b)", fontsize="xx-large")
+    ax1.set_title(r"(b)", fontsize="xx-large")
+    ax2.set_title(r"(c)", fontsize="xx-large")
+    ax3.set_title(r"(a)", fontsize="xx-large")
 
     fig.legend(loc='outside lower center', ncols=4, fontsize="x-large", columnspacing=1.5, handletextpad=0.4)
     add_line(ax1, 0., 0.05, 0.9, 1.75, "1.75", xl=0.4, yl=0.65)
