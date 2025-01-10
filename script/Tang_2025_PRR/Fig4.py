@@ -50,6 +50,6 @@ if __name__ == "__main__":
 
     cb.set_label("Most unstable direction", fontsize=20)
 
-    # plt.show()
-    plt.savefig("fig/FIG4.pdf", dpi=600)
+    plt.show()
+    # plt.savefig("fig/FIG4.pdf", dpi=600)
     plt.close()

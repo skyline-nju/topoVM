@@ -38,6 +38,6 @@ if __name__ == "__main__":
     # ax_cb.set_title(r"$\theta_i$", fontsize=fs)
     ax_cb.set_title(r"$\theta_i$", fontsize="xx-large")
     fig.tight_layout(rect=[-0.015, -0.03, 1.015, 0.97], w_pad=0.5)
-    # plt.show()
-    plt.savefig("fig/FIG5.pdf", dpi=150)
+    plt.show()
+    # plt.savefig("fig/FIG5.pdf", dpi=150)
     plt.close()

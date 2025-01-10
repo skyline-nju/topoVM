@@ -119,7 +119,8 @@ if __name__ == "__main__":
     ax1.set_yscale("log")
 
     dx=40
-    folder = f"{root_sohrab}/topoVM/dissenters/L2000/coarse_grain_dx{dx:d}"
+    # folder = f"{root_sohrab}/topoVM/dissenters/L2000/coarse_grain_dx{dx:d}"
+    folder = f"data/coarse_grain_dx{dx:d}"
 
     eta_arr = [0.1, 0.3, 0.42]
     ncut_arr = [6, 40, 30, 20]

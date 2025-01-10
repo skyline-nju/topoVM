@@ -258,6 +258,6 @@ if __name__ == "__main__":
     # ax_cb.set_title(r"$\theta_i$", fontsize=fs)
     ax_cb.set_title(r"$\theta_i$", fontsize="xx-large")
 
-#     plt.show()
-    plt.savefig("fig/FIG3.pdf", dpi=200)
+    plt.show()
+    # plt.savefig("fig/FIG3.pdf", dpi=200)
     plt.close()
