@@ -29,7 +29,7 @@ if __name__ == "__main__":
         ax.plot(x2, y2, "--", c="tab:cyan", lw=2, label=r"$\eta_\parallel$")
         # if i == 0:
     fs = "xx-large"
-    axes[0, 0].legend(fontsize="xx-large", frameon=True, loc=(0.62, 0.65), borderpad=0.2)
+    axes[0, 0].legend(fontsize=22, frameon=True, loc=(0.54, 0.65), borderpad=0.2)
 
 
     
