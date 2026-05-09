@@ -278,6 +278,9 @@ def PD_w_fixed_rho0():
     ax1.plot(0.03, 0.1, "v", c="tab:pink", ms=8)
     ax1.plot(0.03, 0.3, "p", c="tab:green", ms=8)
     ax1.plot(0.03, 0.42, "^", c="tab:red", ms=8)
+    # ax1.plot(0.03, 0.1, "v", c="k", ms=8)
+    # ax1.plot(0.03, 0.3, "p", c="k", ms=8)
+    # ax1.plot(0.03, 0.42, "^", c="k", ms=8)
 
 
     ax1.annotate(r'$\bar{\rho}_{B,l}$',
@@ -291,6 +294,8 @@ def PD_w_fixed_rho0():
                  xytext=(0.4, 0.325), textcoords='data',
                  arrowprops=dict(facecolor='k', shrink=0.05, edgecolor="k"),
                  horizontalalignment='left', verticalalignment='center', fontsize="xx-large", color="k")
+    
+    ax1.plot([0.04, 0.05, 0.1, 0.2, 0.28], [0.325, 0.32, 0.26, 0.12, 0], ":", c="k", lw=1.5)
     
     # ax2.annotate(r'$\eta_l$',
     #              xy=(0.225, 0.45), xycoords='data',
@@ -323,6 +328,8 @@ def PD_w_fixed_rho0():
 
     mk = ["v", "p", "^"]
     mkc = ["tab:pink", "tab:green", "tab:red"]
+    # mkc = ["k", "k", "k"]
+
     for i, ax in enumerate(ax_snaps):
         im = mpimg.imread(snaps[i])
         ax.imshow(im)
@@ -339,7 +346,7 @@ def PD_w_fixed_rho0():
         ax_in.set_yticklabels([])
         ax_in.set_xticks([])
         ax_in.set_yticks([])
-        ax_in.plot(0, 0, mk[i], c=mkc[i], ms=8)
+        ax_in.plot(0, 0, mk[i], c=mkc[i], ms=9)
 
         dx = 0.25
         ax_in = ax.inset_axes([1-dx, 0, dx, dx])
@@ -366,8 +373,8 @@ def PD_w_fixed_rho0():
 
 
 
-    plt.show()
-    # plt.savefig("fig/FIG1.pdf", dpi=150)
+    # plt.show()
+    plt.savefig("fig/FIG1_v2.pdf", dpi=150)
     plt.close()
 
 if __name__ == "__main__":

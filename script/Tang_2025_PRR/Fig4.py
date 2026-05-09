@@ -26,7 +26,7 @@ if __name__ == "__main__":
         ax.set_xlim(0, 0.5)
         ax.set_ylim(0, 0.5)
         ax.plot(x1, y1, "-", c="w", lw=2, label=r"$\eta_t$")
-        ax.plot(x2, y2, "--", c="tab:cyan", lw=2, label=r"$\eta_\parallel$")
+        ax.plot(x2, y2, "--", c="tab:cyan", lw=2, label=r"$\eta_l$")
         # if i == 0:
     fs = "xx-large"
     axes[0, 0].legend(fontsize=22, frameon=True, loc=(0.54, 0.65), borderpad=0.2)
