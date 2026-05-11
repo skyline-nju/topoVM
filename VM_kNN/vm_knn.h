@@ -244,9 +244,13 @@ void VM_kNN<BaseV>::add_padded_particles(double dx, double dy) {
       pos_arr_.emplace_back(x + Lx_, y);
       idx_arr_.emplace_back(i);
       if (y <= dy) {
+        pos_arr_.emplace_back(x, y+Ly_);
+        idx_arr_.emplace_back(i);
         pos_arr_.emplace_back(x + Lx_, y + Ly_);
         idx_arr_.emplace_back(i);
       } else if (y > Ly_ - dy) {
+        pos_arr_.emplace_back(x, y-Ly_);
+        idx_arr_.emplace_back(i);
         pos_arr_.emplace_back(x + Lx_, y - Ly_);
         idx_arr_.emplace_back(i);
       }
@@ -262,9 +266,13 @@ void VM_kNN<BaseV>::add_padded_particles(double dx, double dy) {
       pos_arr_.emplace_back(x - Lx_, y);
       idx_arr_.emplace_back(i);
       if (y <= dy) {
+        pos_arr_.emplace_back(x, y + Ly_);
+        idx_arr_.emplace_back(i);
         pos_arr_.emplace_back(x - Lx_, y + Ly_);
         idx_arr_.emplace_back(i);
       } else if (y > Ly_ - dy) {
+        pos_arr_.emplace_back(x, y - Ly_);
+        idx_arr_.emplace_back(i);
         pos_arr_.emplace_back(x - Lx_, y - Ly_);
         idx_arr_.emplace_back(i);
       }

@@ -24,6 +24,7 @@ VMpy/data/*.pdf
 XYmodel/data
 NematicLAG/data
 ACMq4/data
+VM_conti/build
 
 phi/
 log/
